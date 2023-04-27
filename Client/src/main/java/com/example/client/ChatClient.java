@@ -1,4 +1,4 @@
-package com.example.javafxapp.Client;
+package com.example.client;
 
 import javafx.scene.control.Alert;
 

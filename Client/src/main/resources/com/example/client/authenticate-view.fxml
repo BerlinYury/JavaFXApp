@@ -5,7 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <VBox VBox.vgrow="ALWAYS" alignment="CENTER" spacing="5.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.example.javafxapp.Client.ControllerAuthenticate">
+      fx:controller="com.example.client.ControllerAuthenticate">
         <HBox alignment="CENTER">
             <Label fx:id="labelLogin" text="login:        "/>
             <TextField fx:id="login" onAction="#nextField" minWidth="200.0"/>

@@ -1,4 +1,4 @@
-package com.example.javafxapp.Server;
+package com.example.server;
 
 public class ServerRunner {
     /**Метод для запуска сервера

@@ -1,6 +1,4 @@
-package com.example.javafxapp.Server;
-
-import com.example.javafxapp.Client.Constants;
+package com.example.server;
 
 import java.io.IOException;
 import java.net.ServerSocket;

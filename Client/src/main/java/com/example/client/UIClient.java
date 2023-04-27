@@ -1,7 +1,5 @@
-package com.example.javafxapp;
+package com.example.client;
 
-import com.example.javafxapp.Client.ControllerAuthenticate;
-import com.example.javafxapp.Client.ControllerClient;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

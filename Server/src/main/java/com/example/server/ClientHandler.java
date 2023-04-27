@@ -1,6 +1,4 @@
-package com.example.javafxapp.Server;
-
-import com.example.javafxapp.Client.Constants;
+package com.example.server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -50,31 +48,26 @@ public class ClientHandler {
         while (true) {
             try {
                 String str = in.readUTF();
-                if (Constants.END.getValue().equals(str)) {
-                    out.writeUTF(Constants.END.getValue());
+                if (isClientExit(str)) {
                     isClientExit = true;//Поле нужно для того, чтобы можно было корректно выйти и закрыть окно на этапе авторизации
                     break;
                 }
                 if (str.startsWith(Constants.AUTH.getValue())) {
-                    String[] split = str.split(" ");
-                    String login = split[1];
-                    String password = split[2];
-                    // Возвращает ник пользователя по его логину и паролю.
-                    String nick = server.getAuthService().getNickByLoginAndPassword(login, password);
-                    if (nick != null) {
-                        if (!server.isNickBusy(nick)) {
-                            this.nick = nick;
-                            sendMessage(String.format("%s %s", Constants.AUTH_OK.getValue(), nick));
-                            String msg = String.format("%s вошёл в чат =)!", Constants.SEND_TO_ALL.getValue());
-                            server.selectiveSendMessage(msg, this);
-                            server.subscribe(this);
-                            break;
-                        } else {
-                            sendMessage(String.format("%s", Constants.AUTH_NICK_BUSY.getValue()));
-                        }
-                    } else {
-                        sendMessage(String.format("%s", Constants.AUTH_FAILED.getValue()));
+                    String nick = server.getAuthService().authenticate(str);
+                    if (nick == null) {
+                        sendMessage(Constants.AUTH_FAILED.getValue());
+                        continue;
                     }
+                    if (server.isNickBusy(nick)) {
+                        sendMessage(Constants.AUTH_NICK_BUSY.getValue());
+                        continue;
+                    }
+                    this.nick = nick;
+                    sendMessage(String.format("%s %s", Constants.AUTH_OK.getValue(), nick));
+                    String msg = String.format("%s вошёл в чат =)!", Constants.SEND_TO_ALL.getValue());
+                    server.selectiveSendMessage(msg, this);
+                    server.subscribe(this);
+                    break;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -104,8 +97,7 @@ public class ClientHandler {
         try {
             while (!isClientExit) {
                 String message = in.readUTF();
-                if (Constants.END.getValue().equals(message)) {
-                    out.writeUTF(Constants.END.getValue());
+                if (isClientExit(message)) {
                     break;
                 }
                 server.selectiveSendMessage(message, this);
@@ -115,10 +107,18 @@ public class ClientHandler {
         }
     }
 
+    private boolean isClientExit(String message) throws IOException {
+        if (Constants.END.getValue().equals(message)) {
+            out.writeUTF(Constants.END.getValue());
+            return true;
+        }
+        return false;
+    }
+
     /**
-     Метод для закрытия соединения с клиентом и освобождения ресурсов.
-     Если соединение еще не закрыто, отправляет всем подключенным клиентам сообщение
-     о том, что текущий клиент отключился, и удаляет его из списка подключенных.
+     * Метод для закрытия соединения с клиентом и освобождения ресурсов.
+     * Если соединение еще не закрыто, отправляет всем подключенным клиентам сообщение
+     * о том, что текущий клиент отключился, и удаляет его из списка подключенных.
      */
     public void closeConnection() {
         if (in != null) {
@@ -152,8 +152,8 @@ public class ClientHandler {
         return nick;
     }
 
-     /**
-     Переопределение метода toString для возврата ника клиента в виде строки.
+    /**
+     * Переопределение метода toString для возврата ника клиента в виде строки.
      */
     @Override
     public String toString() {

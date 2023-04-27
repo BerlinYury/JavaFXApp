@@ -1,4 +1,4 @@
-package com.example.javafxapp.Server;
+package com.example.server;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +15,8 @@ public class SimpleAuthService implements AuthService {
         for (int i = 0; i < numberOfUsers; i++) {
             users.add(new UserData("l" + i, "p" + i, "nick" + i));
         }
-        System.out.println();
     }
+
 
     /**
      * Возвращает ник пользователя по его логину и паролю.
@@ -33,6 +33,15 @@ public class SimpleAuthService implements AuthService {
             }
         }
         return null;
+    }
+
+    @Override
+    public String authenticate(String str) {
+            String[] split = str.split(" ");
+            String login = split[1];
+            String password = split[2];
+            // Возвращает ник пользователя по его логину и паролю.
+            return getNickByLoginAndPassword(login, password);
     }
 
     private static class UserData {

@@ -1,4 +1,4 @@
-package com.example.javafxapp.Client;
+package com.example.server;
 
 public enum Constants {
     END("/end"),
