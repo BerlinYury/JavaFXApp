@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.TextArea?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.Region?>
+<VBox VBox.vgrow="ALWAYS" alignment="CENTER" spacing="5.0" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.client.ControllerClient">
+    <padding>
+        <Insets bottom="3.0" left="5.0" right="3.0" top="3.0"/>
+    </padding>
+    <HBox VBox.vgrow="ALWAYS">
+        <TextArea fx:id="areaText" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS" editable="false" visible="false" wrapText="true"
+                  focusTraversable="false"/>
+        <VBox fx:id="clientsListBox" VBox.vgrow="ALWAYS" maxWidth="170" minWidth="170" visible="false">
+            <HBox alignment="CENTER_RIGHT">
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="logout" text="logout" onAction="#logout" />
+            </HBox>
+            <Label fx:id="label" text="  Список клиентов:"/>
+            <VBox fx:id="clientsList" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </HBox>
+    <HBox>
+        <TextField fx:id="fieldText" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS" onAction="#sendButtonClick" visible="false"/>
+        <Button fx:id="buttonSend" text="Send" onAction="#sendButtonClick" minWidth="170.0" visible="false"/>
+    </HBox>
+</VBox>
