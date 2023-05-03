@@ -1,5 +1,6 @@
 package com.example.client;
 
+import com.example.api.RequestType;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -70,7 +71,7 @@ public class ControllerAuthenticate   {
             alert.setContentText("Пожалуйста, заполните поля Логин и Пароль");
             alert.showAndWait();
         }else {
-            String msgAuth = String.format("%s %s %s", Constants.AUTH.getValue(), loginText, passwordText);
+            String msgAuth = String.format("%s %s %s", RequestType.AUTH.getValue(), loginText, passwordText);
             controllerClient.getClient().sendMessage(msgAuth);
         }
     }

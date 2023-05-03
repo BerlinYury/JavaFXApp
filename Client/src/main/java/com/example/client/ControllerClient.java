@@ -1,5 +1,8 @@
 package com.example.client;
 
+import com.example.api.RequestMessage;
+import com.example.api.RequestType;
+import com.example.api.ResponseMessage;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -48,9 +51,20 @@ public class ControllerClient {
             fieldText.requestFocus();
         } else {
             // Формирование сообщения в зависимости от выбранной кнопки с ником клиента
-            final String msg = String.format("%s %s", prefix, fieldText.getText().trim());
-            addOutgoingMessage(msg); // Добавление исходящего сообщения в окно чата
-            client.sendMessage(msg);// Отправка сообщения на сервер
+            final String msg = String.format("%s %s",prefix,fieldText.getText().trim());
+            RequestMessage requestMessage=RequestMessage.createMessage(msg);
+            if (requestMessage!=null) {
+                switch (requestMessage.getType()) {
+                    case SEND_TO_ALL:
+                        addOutgoingMessageForAll(requestMessage.getMessage());
+                        client.sendMessage(msg);// Отправка сообщения на сервер
+                        break;
+                    case SEND_TO_ONE:
+                        addOutgoingMessageForOneCustomer(requestMessage.getMessage());
+                        client.sendMessage(msg);// Отправка сообщения на сервер
+                        break;
+                }
+            }
             fieldText.clear(); // Очистка текстового поля ввода и установка фокуса на него
             fieldText.requestFocus();
         }
@@ -60,41 +74,25 @@ public class ControllerClient {
      * Обработчик выхода из программы, отправляет на сервер команду на завершение работы
      */
     public void exit() {
-        client.sendMessage(Constants.END.getValue());
+        client.sendMessage(RequestType.END.getValue());
     }
 
     /**
      * Добавление исходящего сообщения в окно чата
      */
-    public void addOutgoingMessage(String message) {
-        try {
-            if (message.startsWith(Constants.SEND_TO_ALL.getValue())) {
-                String[] str = message.split(" ", 2);
-                areaText.appendText("->>" + str[1] + "\n");
-            } else if (message.startsWith(Constants.SEND_TO_ONE.getValue())) {
-                String[] str = message.split(" ", 3);
-                areaText.appendText("->" + str[2] + "\n");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void addOutgoingMessageForAll(String message) {
+        areaText.appendText(String.format("->> %s\n", message));
+    }
+
+    public void addOutgoingMessageForOneCustomer(String message) {
+        areaText.appendText(String.format("-> %s\n", message));
     }
 
     /**
      * Добавление входящего сообщения в окно чата и обработка сообщения об изменении списка пользователей
      */
-    public void addIncomingMessage(String message) {
-        try {
-            if (message.startsWith(Constants.AUTH_CHANGES.getValue())) {
-                String nicksString = message.substring(message.indexOf('[') + 1, message.indexOf(']'));
-                String[] nicks = nicksString.split(",\\s*");
-                addButton(nicks);
-            } else {
-                areaText.appendText(message + "\n");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void addIncomingMessage(ResponseMessage message) {
+        areaText.appendText(String.format("From %s %s\n", message.getFromNick(), message.getMessage()));
     }
 
     /**
@@ -104,7 +102,7 @@ public class ControllerClient {
      *
      * @param nicks массив никнеймов всех клиентов.
      */
-    private void addButton(String[] nicks) {
+    public void addButton(String[] nicks) {
         Platform.runLater(() -> {
             clientsList.getChildren().clear();
             // Создаем группу для кнопок, чтобы была возможность выбирать только одну кнопку за раз
@@ -114,7 +112,7 @@ public class ControllerClient {
             buttonAll.setOnAction(event -> {
                 // Если в чате больше одного пользователя, то задаем префикс сообщения (появляется возможность отправить сообщение всем)
                 if (nicks.length > 1) {
-                    prefix = String.format("%s", Constants.SEND_TO_ALL.getValue());
+                    prefix = String.format("%s", RequestType.SEND_TO_ALL.getValue());
                     fieldText.requestFocus();
                 } else {
                     // Иначе выводим сообщение, что в чате нет других пользователей
@@ -138,7 +136,7 @@ public class ControllerClient {
                     button.setMinWidth(170);
                     // При нажатии на кнопку задаем префикс сообщения и фокусируем поле ввода текста
                     button.setOnAction(event -> {
-                        prefix = String.format("%s %s", Constants.SEND_TO_ONE.getValue(), button.getText());
+                        prefix = String.format("%s %s", RequestType.SEND_TO_ONE.getValue(), button.getText());
                         fieldText.requestFocus();
                     });
                     button.setToggleGroup(toggleGroup);
@@ -166,7 +164,8 @@ public class ControllerClient {
         clientsListBox.setVisible(true);
     }
 
-    /**  Метод перезапускает окно клиента, возвращаая нас на окно авторизации.
+    /**
+     * Метод перезапускает окно клиента, возвращаая нас на окно авторизации.
      * Отключает текущее подключение клиента через метод exit()
      */
     public void logout() {
@@ -179,7 +178,7 @@ public class ControllerClient {
     }
 
     /**
-     Сохраняет ссылки на объекты классов приложения и сцены
+     * Сохраняет ссылки на объекты классов приложения и сцены
      */
     public void takeUIAndControllerClient(Application uiClient, Stage stage) {
         this.uiClient = uiClient;
@@ -189,7 +188,6 @@ public class ControllerClient {
     /**
      * Метод передаёт ссылку на объект контроллера окна аутентификации, для того, чтобы в классе ChatClient
      * можно было вызывать методы класса ControllerAuthenticate, обрабатывающие последствия успешной и неуспешной авторизации пользователя
-     * @param controllerAuthenticate
      */
 
     public void takeControllerAuthenticate(ControllerAuthenticate controllerAuthenticate) {

@@ -1,7 +1,6 @@
 package com.example.server;
 
-public interface AuthService {
-    String getNickByLoginAndPassword(String login, String password);
-    String authenticate(String authMsg);
+public interface AuthService { ;
+    String authenticate(String login, String password);
 }
 

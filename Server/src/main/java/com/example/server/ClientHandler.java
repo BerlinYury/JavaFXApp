@@ -1,5 +1,9 @@
 package com.example.server;
 
+import com.example.api.RequestMessage;
+import com.example.api.RequestType;
+import com.example.api.ResponseType;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,14 +16,8 @@ public class ClientHandler {
     private final DataOutputStream out;
     private String nick;
 
-    //Поле нужно для того, чтобы можно было корректно выйти и закрыть окно на этапе авторизации.
-    // Позволяет не заходить в цикл while метода readMessages
-    private boolean isClientExit;
-
-
     public ClientHandler(Socket socket, ChatServer server) {
         try {
-            isClientExit = false;
             this.nick = "";
             this.socket = socket;
             this.server = server;
@@ -27,8 +25,9 @@ public class ClientHandler {
             this.out = new DataOutputStream(socket.getOutputStream());
             new Thread(() -> {
                 try {
-                    authenticate();
-                    readMessages();
+                    if (isClientAuth()) {
+                        readMessages();
+                    }
                 } finally {
                     closeConnection();
                 }
@@ -44,34 +43,47 @@ public class ClientHandler {
      * Если никнейм уже занят, отправляет клиенту сообщение о неудачной авторизации.
      * Если логин и/или пароль введены неверно, отправляет клиенту сообщение о неудачной авторизации.
      */
-    private void authenticate() {
+    private boolean isClientAuth() {
         while (true) {
             try {
-                String str = in.readUTF();
-                if (isClientExit(str)) {
-                    isClientExit = true;//Поле нужно для того, чтобы можно было корректно выйти и закрыть окно на этапе авторизации
-                    break;
+                String messageStr = in.readUTF();
+                RequestMessage message = RequestMessage.createMessage(messageStr);
+                if (message == null) {
+                    //TODO: Добавть логирование
+                    continue;
                 }
-                if (str.startsWith(Constants.AUTH.getValue())) {
-                    String nick = server.getAuthService().authenticate(str);
-                    if (nick == null) {
-                        sendMessage(Constants.AUTH_FAILED.getValue());
-                        continue;
-                    }
-                    if (server.isNickBusy(nick)) {
-                        sendMessage(Constants.AUTH_NICK_BUSY.getValue());
-                        continue;
-                    }
-                    this.nick = nick;
-                    sendMessage(String.format("%s %s", Constants.AUTH_OK.getValue(), nick));
-                    String msg = String.format("%s вошёл в чат =)!", Constants.SEND_TO_ALL.getValue());
-                    server.selectiveSendMessage(msg, this);
-                    server.subscribe(this);
-                    break;
+                switch (message.getType()) {
+                    case END:
+                        out.writeUTF(RequestType.END.getValue());
+                        return false;
+                    case AUTH:
+                        String nick = server.getAuthService().authenticate(message.getLogin(), message.getPassword());
+                        if (nick == null) {
+                            sendMessage(ResponseType.AUTH_FAILED.getValue());
+                            continue;
+                        }
+                        if (server.isNickBusy(nick)) {
+                            sendMessage(ResponseType.AUTH_NICK_BUSY.getValue());
+                            continue;
+                        }
+                        this.nick = nick;
+                        sendMessage(String.format("%s %s", ResponseType.AUTH_OK.getValue(), nick));
+                        sendMessageAboutChangingCustomerStatus("вошёл в чат =)!");
+                        server.subscribe(nick, this);
+                        return true;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void sendMessageAboutChangingCustomerStatus(String msg) throws IOException{
+        RequestMessage messageChangingCustomerStatus = RequestMessage.createMessage(
+                String.format("%s %s",RequestType.SEND_TO_ALL.getValue(),msg)
+                );
+        if (messageChangingCustomerStatus != null) {
+            server.sendToAll(messageChangingCustomerStatus, nick);
         }
     }
 
@@ -95,24 +107,28 @@ public class ClientHandler {
      */
     private void readMessages() {
         try {
-            while (!isClientExit) {
-                String message = in.readUTF();
-                if (isClientExit(message)) {
-                    break;
+            while (true) {
+                String messageStr = in.readUTF();
+                RequestMessage message = RequestMessage.createMessage(messageStr);
+                if (message == null) {
+                    //TODO: Добавть логирование
+                    continue;
                 }
-                server.selectiveSendMessage(message, this);
+                switch (message.getType()) {
+                    case END:
+                        out.writeUTF(RequestType.END.getValue());
+                        return;
+                    case SEND_TO_ALL:
+                        server.sendToAll(message, nick);
+                        break;
+                    case SEND_TO_ONE:
+                        server.sendToOneCustomer(message,nick);
+                        break;
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private boolean isClientExit(String message) throws IOException {
-        if (Constants.END.getValue().equals(message)) {
-            out.writeUTF(Constants.END.getValue());
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -137,15 +153,22 @@ public class ClientHandler {
         }
         if (socket != null) {
             try {
-                String msgExitClient = String.format("%s Пользователь отключился!", Constants.SEND_TO_ALL.getValue());
-                server.selectiveSendMessage(msgExitClient, this);
-                server.unsubscribe(this);
+                completionOfWorkWithTheClient();
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println("Клиент отключился от сервера");
+        System.out.println("Client is exit");
+    }
+
+    /**
+     * Метод формирует сообщение для клиентов о том, что пользователь отключился и отправляет его
+     * также метод удаляет пользователя из списка
+     */
+    private void completionOfWorkWithTheClient() throws IOException {
+        sendMessageAboutChangingCustomerStatus("Пользователь отключился!");
+        server.unsubscribe(nick);
     }
 
     public String getNick() {

@@ -26,22 +26,13 @@ public class SimpleAuthService implements AuthService {
      * @return ник пользователя, если соответствующий пользователь найден в списке, null в противном случае.
      */
     @Override
-    public String getNickByLoginAndPassword(String login, String password) {
+    public String authenticate(String login, String password) {
         for (UserData user : users) {
             if (user.login.equals(login) && user.password.equals(password)) {
                 return user.nick;
             }
         }
         return null;
-    }
-
-    @Override
-    public String authenticate(String str) {
-            String[] split = str.split(" ");
-            String login = split[1];
-            String password = split[2];
-            // Возвращает ник пользователя по его логину и паролю.
-            return getNickByLoginAndPassword(login, password);
     }
 
     private static class UserData {
