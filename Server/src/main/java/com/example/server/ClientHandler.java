@@ -18,7 +18,6 @@ public class ClientHandler {
 
     public ClientHandler(Socket socket, ChatServer server) {
         try {
-            this.nick = "";
             this.socket = socket;
             this.server = server;
             this.in = new DataInputStream(socket.getInputStream());
@@ -82,9 +81,10 @@ public class ClientHandler {
         RequestMessage messageChangingCustomerStatus = RequestMessage.createMessage(
                 String.format("%s %s",RequestType.SEND_TO_ALL.getValue(),msg)
                 );
-        if (messageChangingCustomerStatus != null) {
-            server.sendToAll(messageChangingCustomerStatus, nick);
+        if (messageChangingCustomerStatus == null) {
+            return;
         }
+            server.sendToAll(messageChangingCustomerStatus, nick);
     }
 
     /**
@@ -116,7 +116,6 @@ public class ClientHandler {
                 }
                 switch (message.getType()) {
                     case END:
-                        out.writeUTF(RequestType.END.getValue());
                         return;
                     case SEND_TO_ALL:
                         server.sendToAll(message, nick);

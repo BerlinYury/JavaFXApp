@@ -72,7 +72,9 @@ public class ControllerAuthenticate   {
             alert.showAndWait();
         }else {
             String msgAuth = String.format("%s %s %s", RequestType.AUTH.getValue(), loginText, passwordText);
-            controllerClient.getClient().sendMessage(msgAuth);
+            ChatClient client=controllerClient.getClient();
+            client.sendMessage(msgAuth);
+
         }
     }
 
@@ -141,20 +143,19 @@ public class ControllerAuthenticate   {
      Получает окно аутентификации.
      @param authenticateStage окно аутентификации
      */
-    public void setStage(Stage authenticateStage) {
+    public void setAuthenticateStage(Stage authenticateStage) {
         this.authenticateStage = authenticateStage;
     }
 
     /**
-
      Получает экземпляр контроллера клиента и главное окно приложения.
-     @param controllerClient экземпляр контроллера клиента
-     @param stage главное окно приложения
      */
-    public void takeController(ControllerClient controllerClient, Stage stage) {
+    public void setControllerClient(ControllerClient controllerClient) {
         this.controllerClient = controllerClient;
+    }
+    public void setStage(Stage stage) {
         this.stage = stage;
-        controllerClient.takeControllerAuthenticate(this);
+//        controllerClient.takeControllerAuthenticate(this);
     }
 }
 
