@@ -64,8 +64,7 @@ public class ResponseMessage {
         ResponseType responseType = ResponseType.getRequestType(prefix);
         if (responseType != null) {
             if (responseType == ResponseType.AUTH_FAILED ||
-                    responseType == ResponseType.AUTH_NICK_BUSY ||
-                    responseType == ResponseType.END) {
+                    responseType == ResponseType.AUTH_NICK_BUSY) {
                 return responseType.createMessage(null);
             }
             return responseType.createMessage(partsOfMessage[1]);

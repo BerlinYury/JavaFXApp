@@ -1,6 +1,5 @@
 package com.example.client;
 
-import com.example.api.RequestType;
 import com.example.api.ResponseMessage;
 
 import java.io.DataInputStream;
@@ -14,26 +13,12 @@ public class ChatClient {
     private DataOutputStream out;
     private final ControllerClient controller;
     private ControllerAuthenticate controllerAuthenticate;
-    private String nick = "";
+    private String nick;
 
-    /**
-     * Создает новый экземпляр класса ChatClient с указанным контроллером.
-     *
-     * @param controller экземпляр контроллера, связанный с данным клиентом
-     */
     public ChatClient(ControllerClient controller) {
         this.controller = controller;
     }
 
-    /**
-     * Метод для установления соединения с сервером. Создает новый сокет и потоки ввода-вывода.
-     * В новом потоке запускает бесконечный цикл чтения сообщений от сервера.
-     * Если сообщение начинается с констант, содержащих информацию об аутентификации, то обрабатывает их через соответствующие методы
-     * контроллера аутентификации.
-     * Иначе добавляет входящее сообщение в контроллер для отображения в чате.
-     * При возникновении ошибок или завершении цикла закрывает соединение и потоки ввода-вывода.
-     * Поток запускается в демоническом режиме.
-     */
     public void openConnection() {
         try {
             String LOCALHOST = "localhost";
@@ -45,17 +30,12 @@ public class ChatClient {
                 try {
                     while (true) {
                         final String messageStr = in.readUTF();
-                        System.out.println(messageStr);
-                        //   /response nick4 hi bro
                         ResponseMessage message = ResponseMessage.createMessage(messageStr);
                         if (message == null) {
                             //TODO: Добавть логирование
                             continue;
                         }
                         switch (message.getType()) {
-                            case END:
-                                out.writeUTF(RequestType.END.getValue());
-                                return;
                             case AUTH_OK:
                                 this.nick = message.getNick();
                                 controllerAuthenticate.onSuccess();
@@ -67,7 +47,7 @@ public class ChatClient {
                                 controllerAuthenticate.onBusy();
                                 break;
                             case AUTH_CHANGES:
-                                controller.addButton(message.getClientsChangeList());
+                                controller.addButtons(message.getClientsChangeList());
                                 break;
                             case RESPONSE:
                                 controller.addIncomingMessage(message);
@@ -87,11 +67,6 @@ public class ChatClient {
         }
     }
 
-    /**
-     * Отправляет сообщение на сервер.
-     *
-     * @param msg сообщение для отправки
-     */
     public void sendMessage(String msg) {
         try {
             out.writeUTF(msg);
@@ -100,9 +75,6 @@ public class ChatClient {
         }
     }
 
-    /**
-     * Закрывает соединение с сервером.
-     */
     public void closeConnection() {
         if (in != null) {
             try {
@@ -129,15 +101,9 @@ public class ChatClient {
     }
 
     public String getNick() {
-        return nick;
+            return nick;
     }
-
-    /**
-     * Связывает контроллер аутентификации с данным клиентом.
-     *
-     * @param controllerAuthenticate экземпляр контроллера аутентификации
-     */
-    public void takeControllerAuthenticate(ControllerAuthenticate controllerAuthenticate) {
-        this.controllerAuthenticate = controllerAuthenticate;
+    public void setControllerAuthenticate(ControllerAuthenticate controllerAuthenticate){
+        this.controllerAuthenticate=controllerAuthenticate;
     }
 }

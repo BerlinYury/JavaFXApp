@@ -15,13 +15,6 @@ public enum ResponseType {
         }
     },
     //(/response nick3 hi bro)
-    END("/end") {
-        @Override
-        public ResponseMessage createMessage(String emptyMessage) {
-            return new ResponseMessage(END);
-        }
-    },
-    //(/end)
 
     AUTH_OK("/authOK") {
         @Override

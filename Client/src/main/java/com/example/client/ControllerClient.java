@@ -1,6 +1,5 @@
 package com.example.client;
 
-import com.example.api.RequestMessage;
 import com.example.api.RequestType;
 import com.example.api.ResponseMessage;
 import javafx.application.Application;
@@ -13,9 +12,7 @@ import javafx.stage.Stage;
 
 import java.util.Arrays;
 
-
 public class ControllerClient {
-
     @FXML
     private Label label;
     @FXML
@@ -30,56 +27,54 @@ public class ControllerClient {
     private TextField fieldText;
 
     private final ChatClient client;
-    private String prefix = " ";//Поле отвечает за выбор получателя сообщения, меняется при нажатии на кнопку с ником
+    private String prefix;//Поле отвечает за выбор получателя сообщения, меняется при нажатии на кнопку с ником
     private Application uiClient;
     private Stage stage;
+    private String toNick;
 
-    /**
-     * Конструктор класса ControllerChat.
-     * Получает экземпляр ChatClient и устанавливает его в качестве переменной client.
-     */
+
     public ControllerClient() {
         client = new ChatClient(this);
         client.openConnection();
     }
 
-    /**
-     * Обработчик нажатия на кнопку отправки сообщения
-     */
     public void sendButtonClick() {
         if (fieldText.getText().isEmpty()) {
             fieldText.requestFocus();
-        } else {
-            // Формирование сообщения в зависимости от выбранной кнопки с ником клиента
-            final String msg = String.format("%s %s",prefix,fieldText.getText().trim());
-            RequestMessage requestMessage=RequestMessage.createMessage(msg);
-            if (requestMessage!=null) {
-                switch (requestMessage.getType()) {
-                    case SEND_TO_ALL:
-                        addOutgoingMessageForAll(requestMessage.getMessage());
-                        client.sendMessage(msg);// Отправка сообщения на сервер
-                        break;
-                    case SEND_TO_ONE:
-                        addOutgoingMessageForOneCustomer(requestMessage.getMessage());
-                        client.sendMessage(msg);// Отправка сообщения на сервер
-                        break;
-                }
+            return;
+        }
+        if (prefix == null) {
+            fieldText.clear();
+            fieldText.requestFocus();
+            return;
+        }
+        RequestType requestType = RequestType.getRequestType(prefix);
+        String msgWithoutPrefix = fieldText.getText().trim();
+        if (requestType == null) {
+            return;
+            //TODO: Добавть логирование
+        }
+            switch (requestType) {
+                case SEND_TO_ALL:
+                    String msgToAll = String.format("%s %s", prefix, msgWithoutPrefix);
+                    addOutgoingMessageForAll(msgWithoutPrefix);
+                    client.sendMessage(msgToAll);
+                    break;
+                case SEND_TO_ONE:
+                    String msgToOne = String.format("%s %s %s", prefix, toNick, msgWithoutPrefix);
+                    addOutgoingMessageForOneCustomer(msgWithoutPrefix);
+                    client.sendMessage(msgToOne);
+                    break;
             }
-            fieldText.clear(); // Очистка текстового поля ввода и установка фокуса на него
+            fieldText.clear();
             fieldText.requestFocus();
         }
-    }
 
-    /**
-     * Обработчик выхода из программы, отправляет на сервер команду на завершение работы
-     */
+
     public void exit() {
         client.sendMessage(RequestType.END.getValue());
     }
 
-    /**
-     * Добавление исходящего сообщения в окно чата
-     */
     public void addOutgoingMessageForAll(String message) {
         areaText.appendText(String.format("->> %s\n", message));
     }
@@ -88,67 +83,69 @@ public class ControllerClient {
         areaText.appendText(String.format("-> %s\n", message));
     }
 
-    /**
-     * Добавление входящего сообщения в окно чата и обработка сообщения об изменении списка пользователей
-     */
     public void addIncomingMessage(ResponseMessage message) {
         areaText.appendText(String.format("From %s %s\n", message.getFromNick(), message.getMessage()));
     }
 
     /**
      * Метод добавления кнопок.
-     * Создает кнопки для отправки сообщений всем пользователям и каждому отдельно.
-     * Добавляет их в VBox, очищает VBox перед добавлением.
+     * Создает кнопки для отправки сообщений всем пользователям сразу и каждому отдельно.
      *
      * @param nicks массив никнеймов всех клиентов.
      */
-    public void addButton(String[] nicks) {
+    public void addButtons(String[] nicks) {
         Platform.runLater(() -> {
             clientsList.getChildren().clear();
             // Создаем группу для кнопок, чтобы была возможность выбирать только одну кнопку за раз
             ToggleGroup toggleGroup = new ToggleGroup();
-            ToggleButton buttonAll = new ToggleButton("Отправить всем");// Создаем кнопку для отправки всем пользователям
-            buttonAll.setMinWidth(170);
-            buttonAll.setOnAction(event -> {
-                // Если в чате больше одного пользователя, то задаем префикс сообщения (появляется возможность отправить сообщение всем)
-                if (nicks.length > 1) {
-                    prefix = String.format("%s", RequestType.SEND_TO_ALL.getValue());
-                    fieldText.requestFocus();
-                } else {
-                    // Иначе выводим сообщение, что в чате нет других пользователей
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setHeaderText(null);
-                    alert.setContentText("В чате пока нет пользователей, кроме вас =(");
-                    alert.showAndWait();
-                    fieldText.requestFocus();
-                }
-            });
-            //Добавляем кнопку "Отправить всем"
-            buttonAll.setToggleGroup(toggleGroup);
-            clientsList.getChildren().add(buttonAll);
+            addButtonToAll(nicks.length, toggleGroup);
+            addButtonToOneCustomer(nicks, toggleGroup);
             fieldText.requestFocus();
-
-            Arrays.sort(nicks);// Сортируем ники по номерам
-            // Добавляем кнопки для отправки сообщения каждому пользователю, кроме текущего пользователя
-            for (String nick : nicks) {
-                if (!nick.equals(client.getNick())) {
-                    ToggleButton button = new ToggleButton(nick); // Создаем кнопку и задаем ей ник пользователя
-                    button.setMinWidth(170);
-                    // При нажатии на кнопку задаем префикс сообщения и фокусируем поле ввода текста
-                    button.setOnAction(event -> {
-                        prefix = String.format("%s %s", RequestType.SEND_TO_ONE.getValue(), button.getText());
-                        fieldText.requestFocus();
-                    });
-                    button.setToggleGroup(toggleGroup);
-                    clientsList.getChildren().add(button);
-                    fieldText.requestFocus();
-                }
-            }
         });
     }
 
+    private void addButtonToAll(int arrNicksLength, ToggleGroup toggleGroup) {
+        ToggleButton buttonAll = new ToggleButton("Отправить всем");
+        buttonAll.setMinWidth(170);
+        buttonAll.setOnAction(event -> {
+            if (arrNicksLength > 1) {
+                // Если в чате больше одного пользователя, то задаем префикс сообщения (появляется возможность отправить сообщение всем)
+                prefix = String.format("%s", RequestType.SEND_TO_ALL.getValue());
+                fieldText.requestFocus();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setHeaderText(null);
+                alert.setContentText("В чате пока нет пользователей, кроме вас =(");
+                alert.showAndWait();
+                fieldText.requestFocus();
+                toggleGroup.selectToggle(null);
+            }
+        });
+        buttonAll.setToggleGroup(toggleGroup);
+        clientsList.getChildren().add(buttonAll);
+    }
+
+    private void addButtonToOneCustomer(String[] nicks, ToggleGroup toggleGroup) {
+        Arrays.sort(nicks);
+        for (String nick : nicks) {
+            if (nick.equals(client.getNick())) {
+                continue;
+            }
+            ToggleButton button = new ToggleButton(nick);
+            button.setMinWidth(170);
+            // При нажатии на кнопку задаем префикс сообщения (появляется возможность отправить сообщение конкретному пользователю)
+            button.setOnAction(event -> {
+                prefix = String.format("%s", RequestType.SEND_TO_ONE.getValue());
+                this.toNick=button.getText();//Ник получателя сообщения берём с выбранной кнопи.
+                fieldText.requestFocus();
+            });
+            button.setToggleGroup(toggleGroup);
+            clientsList.getChildren().add(button);
+        }
+    }
+
+
     public void setLabel() {
-        // Задаем стиль и размер шрифта для заголовка к списку клиентов
         label.setFont(new Font("Sriracha Regular", 15));
     }
 
@@ -157,7 +154,6 @@ public class ControllerClient {
     }
 
     public void viewWindow() {
-        // Сделать все элементы окна чата видимыми
         areaText.setVisible(true);
         fieldText.setVisible(true);
         buttonSend.setVisible(true);
@@ -177,20 +173,12 @@ public class ControllerClient {
         exit();
     }
 
-    /**
-     * Сохраняет ссылки на объекты классов приложения и сцены
-     */
-    public void takeUIAndControllerClient(Application uiClient, Stage stage) {
+    public void setUiClient(Application uiClient) {
         this.uiClient = uiClient;
+    }
+
+    public void setStage(Stage stage) {
         this.stage = stage;
     }
 
-    /**
-     * Метод передаёт ссылку на объект контроллера окна аутентификации, для того, чтобы в классе ChatClient
-     * можно было вызывать методы класса ControllerAuthenticate, обрабатывающие последствия успешной и неуспешной авторизации пользователя
-     */
-
-    public void takeControllerAuthenticate(ControllerAuthenticate controllerAuthenticate) {
-        client.takeControllerAuthenticate(controllerAuthenticate);
-    }
 }

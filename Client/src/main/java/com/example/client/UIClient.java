@@ -20,28 +20,27 @@ public class UIClient extends Application {
         // Создание сцены для главного окна
         FXMLLoader fxmlLoader = new FXMLLoader(UIClient.class.getResource("hello-view.fxml"));
         Parent root = fxmlLoader.load();
-        ControllerClient controllerClient = fxmlLoader.getController(); // получаем контроллер из загруженного FXML
+        ControllerClient controllerClient = fxmlLoader.getController();
         Scene scene = new Scene(root, 650, 400);
         stage.setScene(scene);
         stage.show();
-        // Установка метки на форме главного окна
         controllerClient.setLabel();
-        // Передача ссылок на объекты между контроллером главного окна и UI
-        controllerClient.takeUIAndControllerClient(this, stage);
-        // Обработчик события закрытия главного окна
+        controllerClient.setUiClient(this);
+        controllerClient.setStage(stage);
         stage.setOnCloseRequest(event -> {
-            controllerClient.exit(); // вызываем метод exit() из контроллера
+            controllerClient.exit();
         });
 
         // Создание сцены для окна аутентификации
         FXMLLoader secondaryFxmlLoader = new FXMLLoader(UIClient.class.getResource("authenticate-view.fxml"));
         Parent secondaryRoot = secondaryFxmlLoader.load();
         Stage authenticateStage = new Stage();
-        // сделайте поле, чтобы иметь доступ к контроллеру
         ControllerAuthenticate controllerAuthenticate = secondaryFxmlLoader.getController();
-        controllerAuthenticate.setStage(authenticateStage); // передаем ссылку на Stage
-        // Передача ссылок на объекты между контроллером главного окна и контроллером окна аутентификации
-        controllerAuthenticate.takeController(controllerClient, stage);
+        controllerAuthenticate.setAuthenticateStage(authenticateStage);
+        ChatClient client = controllerClient.getClient();
+        client.setControllerAuthenticate(controllerAuthenticate);
+        controllerAuthenticate.setControllerClient(controllerClient);
+        controllerAuthenticate.setStage(stage);
         Scene secondaryScene = new Scene(secondaryRoot, 300, 150);
         authenticateStage.setTitle("Authenticate");
         authenticateStage.setScene(secondaryScene);
