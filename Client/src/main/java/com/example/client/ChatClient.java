@@ -1,72 +1,84 @@
 package com.example.client;
 
 import com.example.api.ResponseMessage;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.Socket;
 
-public class ChatClient {
-    private Socket socket;
-    private DataInputStream in;
-    private DataOutputStream out;
-    private final ControllerClient controller;
-    private ControllerAuthenticate controllerAuthenticate;
-    private String nick;
+@Slf4j
+@ApplicationScoped
+@NoArgsConstructor
+public class ChatClient implements IChatClient {
 
-    public ChatClient(ControllerClient controller) {
-        this.controller = controller;
+    private DataOutputStream out;
+    private String nick;
+    private ControllerClient controllerClient;
+    private ControllerAuthenticate controllerAuthenticate;
+    private ControllerRegistration controllerRegistration;
+
+    public void setControllers(ControllerClient controllerClient,
+                      ControllerAuthenticate controllerAuthenticate,
+                      ControllerRegistration controllerRegistration) {
+        this.controllerClient = controllerClient;
+        this.controllerAuthenticate = controllerAuthenticate;
+        this.controllerRegistration = controllerRegistration;
     }
 
+    @Override
     public void openConnection() {
-        try {
+        ThreadManagerClient.getInstance().getExecutorService().execute(() -> {
             String LOCALHOST = "localhost";
             int PORT = 8129;
-            socket = new Socket(LOCALHOST, PORT);
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
-            Thread threadClient = new Thread(() -> {
-                try {
-                    while (true) {
-                        final String messageStr = in.readUTF();
-                        ResponseMessage message = ResponseMessage.createMessage(messageStr);
-                        if (message == null) {
-                            //TODO: Добавть логирование
-                            continue;
-                        }
-                        switch (message.getType()) {
-                            case AUTH_OK:
-                                this.nick = message.getNick();
-                                controllerAuthenticate.onSuccess();
-                                break;
-                            case AUTH_FAILED:
-                                controllerAuthenticate.onError();
-                                break;
-                            case AUTH_NICK_BUSY:
-                                controllerAuthenticate.onBusy();
-                                break;
-                            case AUTH_CHANGES:
-                                controller.addButtons(message.getClientsChangeList());
-                                break;
-                            case RESPONSE:
-                                controller.addIncomingMessage(message);
-                                break;
-                        }
+            try (Socket socket = new Socket(LOCALHOST, PORT);
+                 DataInputStream in = new DataInputStream(socket.getInputStream());
+                 DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+                this.out = out;
+                log.info(String.format("Клиент %s открыт", this.nick));
+                while (true) {
+                    final String messageStr = in.readUTF();
+                    ResponseMessage message = ResponseMessage.createMessage(messageStr);
+                    if (message == null) {
+                        log.error(String.format("ResponseMessage for %s == null", this.nick));
+                        continue;
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    closeConnection();
+                    switch (message.getType()) {
+                        case RECOVERY -> {
+                            controllerClient.appendOldMessages(message.getMessage());
+                            System.out.println(message.getMessage());
+                        }
+                        case REG_OK -> {
+                            controllerRegistration.onSuccess();
+                            log.info(String.format("Клиент %s зарегистрирован", this.nick));
+                        }
+                        case REG_BUSY -> controllerRegistration.onBusy();
+                        case AUTH_OK -> {
+                            this.nick = message.getNick();
+                            controllerAuthenticate.onSuccess();
+                            log.info(String.format("Клиент %s авторизован", this.nick));
+                        }
+                        case AUTH_FAILED -> controllerAuthenticate.onError();
+                        case AUTH_NICK_BUSY -> controllerAuthenticate.onBusy();
+                        case AUTH_CHANGES -> controllerClient.addButtons(message.getClientsChangeList());
+                        case RESPONSE -> controllerClient.addIncomingMessage(message);
+                        default -> throw new IllegalStateException("Unexpected value: " + message.getType());
+                    }
                 }
-            });
-            threadClient.setDaemon(true);
-            threadClient.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            } catch (ConnectException cE) {
+                System.out.println("Cервер не запущен");
+                System.exit(1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
+    @Override
     public void sendMessage(String msg) {
         try {
             out.writeUTF(msg);
@@ -75,35 +87,9 @@ public class ChatClient {
         }
     }
 
-    public void closeConnection() {
-        if (in != null) {
-            try {
-                in.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if (out != null) {
-            try {
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("Клиент закрыт");
+    @Override
+    public String getNick() {
+        return nick;
     }
 
-    public String getNick() {
-            return nick;
-    }
-    public void setControllerAuthenticate(ControllerAuthenticate controllerAuthenticate){
-        this.controllerAuthenticate=controllerAuthenticate;
-    }
 }

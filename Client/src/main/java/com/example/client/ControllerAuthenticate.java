@@ -2,63 +2,39 @@ package com.example.client;
 
 import com.example.api.RequestType;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
+import lombok.Setter;
 
-public class ControllerAuthenticate   {
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+
+public class ControllerAuthenticate extends Controller implements IControllerAuthenticate{
     @FXML
     private TextField login;
     @FXML
     private TextField password;
 
-    private Stage authenticateStage; // окно аутентификации
-    private Stage stage; // главное окно
-    private ControllerClient controllerClient; // экземпляр контроллера клиента
-    private boolean isAuth=false;// флаг, указывающий, авторизован ли пользователь
-    private final int SECOND_TO_MILLIS_MULTIPLIER = 1000;// множитель для перевода секунд в миллисекунды
+    private boolean isAuth = false;// флаг, указывающий, авторизован ли пользователь
+    private ScheduledFuture<?> scheduledFuture;
 
+    @Setter
+    private UIClient uiClient;
 
     public ControllerAuthenticate() {
-       timeLimit();
+        ThreadManagerClient.getInstance().getExecutorService().execute(this::timeLimit);
     }
 
-    /** Метод для запуска таймера, который закроет окна, если пользователь не авторизовался в течение 120 секунд
-     */
-    private void timeLimit() {
-        Thread timer = new Thread(() -> {
-            try {
-                Thread.sleep(120*SECOND_TO_MILLIS_MULTIPLIER);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (!isAuth) {
-                closeAllWindows();
-            }
-        });
-        timer.setDaemon(true);
-        timer.start();
-    }
-
-    /** Метод для закрытия всех окон
-     */
-    private void closeAllWindows() {
-        Platform.runLater(() -> {
-            controllerClient.exit();
-            authenticateStage.close();
-            stage.close();
-        });
-    }
 
     /**
      * Обрабатывает нажатие на кнопку "Авторизоваться"
      * Если логин и пароль не пустые, отправляет сообщение на сервер для авторизации
      * Если одно из полей пустое, выводит сообщение об ошибке
-     * @param actionEvent - событие нажатия на кнопку
      */
-    public void sendButtonAuth(ActionEvent actionEvent) {
+    @FXML
+    public void sendButtonEnter() {
         String loginText = login.getText().trim();
         String passwordText = password.getText().trim();
         if (loginText.isEmpty() || passwordText.isEmpty()) {
@@ -70,55 +46,57 @@ public class ControllerAuthenticate   {
             alert.setHeaderText(null);
             alert.setContentText("Пожалуйста, заполните поля Логин и Пароль");
             alert.showAndWait();
-        }else {
+        } else {
             String msgAuth = String.format("%s %s %s", RequestType.AUTH.getValue(), loginText, passwordText);
-            ChatClient client=controllerClient.getClient();
-            client.sendMessage(msgAuth);
-
+            uiClient.getChatClient().sendMessage(msgAuth);
         }
     }
 
-    /**
-     * Метод вызывается при успешной авторизации
-     * Открывает главное окно, закрывает окно авторизации, устанавливает флаг авторизации
-     */
+    @FXML
+    private void sendButtonRegistration() {
+        offTimer();
+        login.requestFocus();
+        uiClient.getAuthenticateStage().close();
+        uiClient.getRegistrationStage().show();
+    }
+
+    @Override
     public void onSuccess() {
         Platform.runLater(() -> {
-        controllerClient.viewWindow();
-        stage.setTitle(controllerClient.getClient().getNick());
-        authenticateStage.close();
-        isAuth=true;
+            offTimer();
+            uiClient.getControllerClient().viewWindow();
+            uiClient.getStartStage().setTitle( uiClient.getChatClient().getNick());
+            uiClient.getAuthenticateStage().close();
+            isAuth = true;
         });
     }
 
-    /**
-     * Метод вызывается при ошибке авторизации
-     * Очищает поля логина и пароля, выводит сообщение об ошибке
-     */
+    @Override
     public void onError() {
         Platform.runLater(() -> {
-        login.clear();
-        password.clear();
-        login.requestFocus();
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Ошибка авторизации");
-        alert.setHeaderText(null);
-        alert.setContentText("Вы ввели неверный логин или пароль, попробуйте снова =) ");
-        alert.showAndWait();
+            login.clear();
+            password.clear();
+            login.requestFocus();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Ошибка авторизации");
+            alert.setHeaderText(null);
+            alert.setContentText("Вы ввели неверный логин или пароль, попробуйте снова =) ");
+            alert.showAndWait();
         });
     }
 
     /**
-     Показывает сообщение об ошибке, если пользователь с введенными учетными данными уже зарегистрирован в чате.
-     Очищает поля для ввода логина и пароля и устанавливает фокус на поле для ввода логина.
+     * Показывает сообщение об ошибке, если пользователь с введенными учетными данными уже зарегистрирован в чате.
+     * Очищает поля для ввода логина и пароля и устанавливает фокус на поле для ввода логина.
      */
+    @Override
     public void onBusy() {
         Platform.runLater(() -> {
             login.clear();
             password.clear();
             login.requestFocus();
             Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("nick уже занят");
+            alert.setTitle("Логин уже занят");
             alert.setHeaderText(null);
             alert.setContentText("Пользователь с такими учётными данными уже есть в чате");
             alert.showAndWait();
@@ -126,36 +104,70 @@ public class ControllerAuthenticate   {
     }
 
     /**
-     Устанавливает фокус на поле для ввода пароля.
+     * Устанавливает фокус на поле для ввода пароля.
      */
-    public void nextField() {
+    @FXML
+    private void nextField() {
         password.requestFocus();
     }
 
     /**
-     Обрабатывает нажатие на кнопку "Отправить" на экране аутентификации.
+     * Обрабатывает нажатие на кнопку "Отправить" на экране аутентификации.
      */
-    public void nextField1(ActionEvent actionEvent) {
-        sendButtonAuth(actionEvent);
+    @FXML
+    private void nextField1() {
+        sendButtonEnter();
     }
 
     /**
-     Получает окно аутентификации.
-     @param authenticateStage окно аутентификации
+     * Метод для закрытия всех окон
      */
-    public void setAuthenticateStage(Stage authenticateStage) {
-        this.authenticateStage = authenticateStage;
+    @Override
+    public void closeAllWindows() {
+        Platform.runLater(() -> {
+            uiClient.getControllerClient().exit();
+            uiClient.getAuthenticateStage().close();
+            uiClient.getStartStage().close();
+            ThreadManagerClient.getInstance().shutdownMyExecutorService();
+            ThreadManagerClient.getInstance().shutdownMyScheduledExecutorService();
+        });
+    }
+
+    @Override
+    public void restartTimer() {
+        ThreadManagerClient.getInstance().getExecutorService().execute(this::timeLimit);
+    }
+
+    @Override
+    public void offTimer() {
+        scheduledFuture.cancel(false);
     }
 
     /**
-     Получает экземпляр контроллера клиента и главное окно приложения.
+     * Метод для запуска таймера, который закроет окна, если пользователь не авторизовался в течение 120 секунд
      */
-    public void setControllerClient(ControllerClient controllerClient) {
-        this.controllerClient = controllerClient;
+    private void timeLimit() {
+        try {
+            scheduledFuture = ThreadManagerClient.getInstance().getScheduledExecutorService().schedule(() -> {
+                if (!isAuth) {
+//                    timeOffWindow();
+                    closeAllWindows();
+                }
+            }, 10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
-    public void setStage(Stage stage) {
-        this.stage = stage;
-//        controllerClient.takeControllerAuthenticate(this);
+
+    private void timeOffWindow() {
+        Platform.runLater(()->{
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Time limit");
+            alert.setHeaderText(null);
+            alert.setContentText("Время ожидания вышло");
+            alert.showAndWait();
+        });
     }
+
 }
 

@@ -14,8 +14,7 @@
     <bytecodeTargetLevel>
       <module name="API" target="11" />
       <module name="Client" target="11" />
-      <module name="JavaFXApp" target="1.5" />
-      <module name="Server" target="11" />
+      <module name="Server" target="15" />
     </bytecodeTargetLevel>
   </component>
 </project>

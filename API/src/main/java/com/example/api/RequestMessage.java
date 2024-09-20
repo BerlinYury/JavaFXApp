@@ -1,5 +1,10 @@
 package com.example.api;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Getter
 public class RequestMessage {
     private final String message;
     private final RequestType type;
@@ -39,37 +44,23 @@ public class RequestMessage {
         this.password = null;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public RequestType getType() {
-        return type;
-    }
-
-    public String getNick() {
-        return nick;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
     public static RequestMessage createMessage(String msg) {
         String[] partsOfMessage = msg.split(" ", 2);
         String prefix = partsOfMessage[0];
         RequestType requestType = RequestType.getRequestType(prefix);
-        if (requestType!=null){
-            if (requestType==RequestType.END){
+
+        if (requestType == null) {
+            log.error("requestType == null");
+            throw new NullPointerException("requestType == null");
+        }
+        switch (requestType) {
+            case END -> {
                 return requestType.createMessage(null);
             }
-           return requestType.createMessage(partsOfMessage[1]);
+            default -> {
+                return requestType.createMessage(partsOfMessage[1]);
+            }
         }
-        //TODO: Бросить ошибку
-        return null;
     }
+
 }
