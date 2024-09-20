@@ -1,10 +1,23 @@
 package com.example.api;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum ResponseType {
+@RequiredArgsConstructor
+public enum ResponseType implements IResponseType{
+
+    RECOVERY("/recovery") {
+        @Override
+        public ResponseMessage createMessage(String recoveryMessages) {
+            return new ResponseMessage(recoveryMessages, RECOVERY);
+        }
+    },
+//(/recovery msg)
+
     RESPONSE("/response") {
         @Override
         public ResponseMessage createMessage(String fromNickAndMessage) {
@@ -40,6 +53,21 @@ public enum ResponseType {
     },
     //(/authNickBusy)
 
+    REG_OK("/regOK") {
+        @Override
+        public ResponseMessage createMessage(String emptyMsg) {
+            return new ResponseMessage(REG_OK);
+        }
+    },
+    //(/regOK)
+    REG_BUSY("/regBusy") {
+        @Override
+        public ResponseMessage createMessage(String emptyMsg) {
+            return new ResponseMessage(REG_BUSY);
+        }
+    },
+    //(/authNickBusy)
+
     AUTH_CHANGES("/changes") {
         @Override
         public ResponseMessage createMessage(String clientsChangeList) {
@@ -51,6 +79,8 @@ public enum ResponseType {
     };
     //(/changes [nick, nick, nick, nick])
 
+    @Getter
+    private final String value;
     private static final Map<String, ResponseType> VALUES;
 
     static {
@@ -60,19 +90,6 @@ public enum ResponseType {
         }
         VALUES = Collections.unmodifiableMap(stringResponseTypeHashMap);
     }
-
-    private final String value;
-
-    ResponseType(String value) {
-        this.value = value;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public abstract ResponseMessage createMessage(String splitMessageSecondPart);
-
     public static ResponseType getRequestType(String msgPrefix) {
         return VALUES.get(msgPrefix);
     }

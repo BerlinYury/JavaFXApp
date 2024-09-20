@@ -8,6 +8,7 @@
 
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.ScrollPane?>
 <VBox VBox.vgrow="ALWAYS" alignment="CENTER" spacing="5.0" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.example.client.ControllerClient">
     <padding>
@@ -16,6 +17,7 @@
     <HBox VBox.vgrow="ALWAYS">
         <TextArea fx:id="areaText" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS" editable="false" visible="false" wrapText="true"
                   focusTraversable="false"/>
+
         <VBox fx:id="clientsListBox" VBox.vgrow="ALWAYS" maxWidth="170" minWidth="170" visible="false">
             <HBox alignment="CENTER_RIGHT">
                 <Region HBox.hgrow="ALWAYS"/>

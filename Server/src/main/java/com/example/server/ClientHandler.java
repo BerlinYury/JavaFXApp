@@ -3,26 +3,33 @@ package com.example.server;
 import com.example.api.RequestMessage;
 import com.example.api.RequestType;
 import com.example.api.ResponseType;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class ClientHandler {
-    private final Socket socket;
+@Slf4j
+public class ClientHandler implements IClientHandler{
+    private Socket socket;
     private final ChatServer server;
-    private final DataInputStream in;
-    private final DataOutputStream out;
+    private DataInputStream in;
+    private DataOutputStream out;
     private String nick;
 
-    public ClientHandler(Socket socket, ChatServer server) {
+
+    public ClientHandler(ChatServer server) {
+        this.server = server;
+    }
+
+    @Override
+    public void openConnection(Socket socket) {
         try {
             this.socket = socket;
-            this.server = server;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
-            new Thread(() -> {
+            ThreadManagerServer.getInstance().getExecutorService().execute(() -> {
                 try {
                     if (isClientAuth()) {
                         readMessages();
@@ -30,33 +37,54 @@ public class ClientHandler {
                 } finally {
                     closeConnection();
                 }
-            }).start();
-        } catch (IOException e) {
+            });
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    /**
-     * Метод аутентификации клиента. Ожидает ввода логина и пароля, проверяет их на валидность и авторизует клиента.
-     * В случае успеха отправляет клиенту сообщение об успешной авторизации и добавляет его в список подключенных клиентов.
-     * Если никнейм уже занят, отправляет клиенту сообщение о неудачной авторизации.
-     * Если логин и/или пароль введены неверно, отправляет клиенту сообщение о неудачной авторизации.
-     */
+    @Override
+    public void sendMessage(String message) {
+        try {
+            out.writeUTF(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public String getNick() {
+        return nick;
+    }
+
     private boolean isClientAuth() {
         while (true) {
             try {
                 String messageStr = in.readUTF();
+                System.out.println(messageStr);
                 RequestMessage message = RequestMessage.createMessage(messageStr);
                 if (message == null) {
-                    //TODO: Добавть логирование
+                    log.error(String.format("RequestMessage for %s == null", this.nick));
                     continue;
                 }
                 switch (message.getType()) {
-                    case END:
-                        out.writeUTF(RequestType.END.getValue());
+                    case END -> {
                         return false;
-                    case AUTH:
-                        String nick = server.getAuthService().authenticate(message.getLogin(), message.getPassword());
+                    }
+                    case REGISTRATION -> {
+                        if (!DatabaseHandling.isClientExistsInDatabase(message.getLogin(), message.getPassword())) {
+                            DatabaseHandling.registrationUsers(message.getLogin(), message.getPassword());
+                            sendMessage(ResponseType.REG_OK.getValue());
+                            log.info(String.format("Пользователь %s успешно зарегистрировался", this.nick));
+                        } else {
+                            sendMessage(ResponseType.REG_BUSY.getValue());
+                            log.info(String.format("Пользователь с такими регистрационными данными ник: %s уже " +
+                                    "существует", this.nick));
+                        }
+                    }
+                    case AUTH -> {
+                         String nick = SimpleAuthService.getNickFromLoginAndPassword(message.getLogin(),
+                                message.getPassword());
                         if (nick == null) {
                             sendMessage(ResponseType.AUTH_FAILED.getValue());
                             continue;
@@ -66,63 +94,48 @@ public class ClientHandler {
                             continue;
                         }
                         this.nick = nick;
+                        String oldMessages = SerializeMessages.readMessagesFromFile(nick);
+                        sendMessage(String.format("%s %s", ResponseType.RECOVERY.getValue(), oldMessages));
                         sendMessage(String.format("%s %s", ResponseType.AUTH_OK.getValue(), nick));
-                        sendMessageAboutChangingCustomerStatus("вошёл в чат =)!");
+                        sendMessageAboutChangingCustomerStatus("Пользователь подключился =)");
+                        log.info(String.format("Пользователь %s подключился", this.nick));
                         server.subscribe(nick, this);
                         return true;
+                    }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
+                System.exit(1);
             }
         }
     }
 
-    private void sendMessageAboutChangingCustomerStatus(String msg) throws IOException{
+    private void sendMessageAboutChangingCustomerStatus(String msg) {
         RequestMessage messageChangingCustomerStatus = RequestMessage.createMessage(
-                String.format("%s %s",RequestType.SEND_TO_ALL.getValue(),msg)
-                );
+                String.format("%s %s", RequestType.SEND_TO_ALL.getValue(), msg)
+        );
         if (messageChangingCustomerStatus == null) {
             return;
         }
-            server.sendToAll(messageChangingCustomerStatus, nick);
+        server.sendToAll(messageChangingCustomerStatus, nick);
     }
 
-    /**
-     * Метод отправки сообщения клиенту. Отправляет сообщение через исходящий поток клиента.
-     *
-     * @param message сообщение для отправки клиенту
-     */
-    public void sendMessage(String message) {
-        try {
-            out.writeUTF(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Метод чтения входящих сообщений от клиента. Принимает сообщение, проверяет его на наличие команды завершения
-     * чата, и если команда присутствует, закрывает соединение с клиентом. В противном случае отправляет сообщение
-     * всем клиентам или выборочно, через метод selectiveSendMessage.
-     */
     private void readMessages() {
         try {
             while (true) {
                 String messageStr = in.readUTF();
                 RequestMessage message = RequestMessage.createMessage(messageStr);
                 if (message == null) {
-                    //TODO: Добавть логирование
+                    log.error(String.format("RequestMessage for %s == null", this.nick));
                     continue;
                 }
                 switch (message.getType()) {
-                    case END:
+                    case END -> {
                         return;
-                    case SEND_TO_ALL:
-                        server.sendToAll(message, nick);
-                        break;
-                    case SEND_TO_ONE:
-                        server.sendToOneCustomer(message,nick);
-                        break;
+                    }
+                    case SEND_TO_ALL -> server.sendToAll(message, nick);
+                    case SEND_TO_ONE -> server.sendToOneCustomer(message, nick);
+                    case RETENTION -> SerializeMessages.writeMessagesToFile(message, nick);
                 }
             }
         } catch (IOException e) {
@@ -130,12 +143,7 @@ public class ClientHandler {
         }
     }
 
-    /**
-     * Метод для закрытия соединения с клиентом и освобождения ресурсов.
-     * Если соединение еще не закрыто, отправляет всем подключенным клиентам сообщение
-     * о том, что текущий клиент отключился, и удаляет его из списка подключенных.
-     */
-    public void closeConnection() {
+    private void closeConnection() {
         if (in != null) {
             try {
                 in.close();
@@ -154,31 +162,19 @@ public class ClientHandler {
             try {
                 completionOfWorkWithTheClient();
                 socket.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        System.out.println("Client is exit");
+        log.info(String.format("Пользователь %s отключился", this.nick));
     }
 
-    /**
-     * Метод формирует сообщение для клиентов о том, что пользователь отключился и отправляет его
-     * также метод удаляет пользователя из списка
-     */
-    private void completionOfWorkWithTheClient() throws IOException {
+    private void completionOfWorkWithTheClient() {
+        if (nick == null) {
+            return;
+        }
         sendMessageAboutChangingCustomerStatus("Пользователь отключился!");
         server.unsubscribe(nick);
     }
 
-    public String getNick() {
-        return nick;
-    }
-
-    /**
-     * Переопределение метода toString для возврата ника клиента в виде строки.
-     */
-    @Override
-    public String toString() {
-        return nick;
-    }
 }

@@ -1,0 +1,7 @@
+.right-aligned {
+    -fx-text-alignment: right;
+}
+
+.left-aligned {
+    -fx-text-alignment: left;
+}

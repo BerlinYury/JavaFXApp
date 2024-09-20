@@ -1,49 +1,33 @@
 package com.example.server;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
-public class SimpleAuthService implements AuthService {
-    private final List<UserData> users;
-    private final int numberOfUsers=10;
+import java.sql.*;
 
-    /**
-     * Создает новый объект SimpleAuthService, инициализирует список пользователей и заполняет его данными.
-     */
-    public SimpleAuthService() {
-        users = new ArrayList<>();
-        for (int i = 0; i < numberOfUsers; i++) {
-            users.add(new UserData("l" + i, "p" + i, "nick" + i));
-        }
+@Slf4j
+public abstract class SimpleAuthService {
+
+    private static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection("jdbc:mysql://localhost:3306/auth?user=root&password=Cotton68");
     }
 
-
-    /**
-     * Возвращает ник пользователя по его логину и паролю.
-     *
-     * @param login    логин пользователя
-     * @param password пароль пользователя
-     * @return ник пользователя, если соответствующий пользователь найден в списке, null в противном случае.
-     */
-    @Override
-    public String authenticate(String login, String password) {
-        for (UserData user : users) {
-            if (user.login.equals(login) && user.password.equals(password)) {
-                return user.nick;
+    public static String getNickFromLoginAndPassword(String login, String password) {
+        try (Connection connection = getConnection()) {
+            log.info("Установлено соединение с базой данных");
+            String passwordHashCode = Integer.toString(password.hashCode());
+            Statement selectStatement = connection.createStatement();
+            String sqlRequest = String.format("select nick from authenticate where login = '%s' AND password = '%s'",
+                    login, passwordHashCode);
+            ResultSet resultSet = selectStatement.executeQuery(sqlRequest);
+            if (resultSet.next()) {
+                return resultSet.getString(1);
+            } else {
+                return null;
             }
-        }
-        return null;
-    }
-
-    private static class UserData {
-        private final String login;
-        private final String password;
-        private final String nick;
-
-        public UserData(String login, String password, String nick) {
-            this.login = login;
-            this.password = password;
-            this.nick = nick;
+        } catch (SQLException e) {
+            log.error("Не удалось установить соединение с базой данных");
+            throw new RuntimeException(e);
         }
     }
+
 }
