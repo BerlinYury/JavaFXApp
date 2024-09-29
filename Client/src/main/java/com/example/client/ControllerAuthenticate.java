@@ -53,7 +53,7 @@ public class ControllerAuthenticate extends Controller implements IControllerAut
     }
 
     @FXML
-    private void sendButtonRegistration() {
+    private void clickButtonRegistration() {
         offTimer();
         login.requestFocus();
         uiClient.getAuthenticateStage().close();
@@ -64,9 +64,9 @@ public class ControllerAuthenticate extends Controller implements IControllerAut
     public void onSuccess() {
         Platform.runLater(() -> {
             offTimer();
-            uiClient.getControllerClient().viewWindow();
-            uiClient.getStartStage().setTitle( uiClient.getChatClient().getNick());
             uiClient.getAuthenticateStage().close();
+            uiClient.getStartStage().setTitle( uiClient.getChatClient().getNick());
+            uiClient.getStartStage().show();
             isAuth = true;
         });
     }
@@ -150,10 +150,10 @@ public class ControllerAuthenticate extends Controller implements IControllerAut
         try {
             scheduledFuture = ThreadManagerClient.getInstance().getScheduledExecutorService().schedule(() -> {
                 if (!isAuth) {
-//                    timeOffWindow();
+                    timeOffWindow();
                     closeAllWindows();
                 }
-            }, 10, TimeUnit.SECONDS);
+            }, 120, TimeUnit.SECONDS);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

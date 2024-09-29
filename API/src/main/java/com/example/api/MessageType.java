@@ -1,0 +1,10 @@
+package com.example.api;
+
+public enum MessageType {
+    INCOMING_MESSAGE,
+    OUTGOING_MESSAGE_FOR_ONE_CUSTOMER,
+    OUTGOING_MESSAGE_FOR_ALL,
+    DATE_OF_MESSAGE,
+    INFORMATION_MESSAGE
+
+}

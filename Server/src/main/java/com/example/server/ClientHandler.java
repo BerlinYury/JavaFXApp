@@ -1,21 +1,30 @@
 package com.example.server;
 
+import com.example.api.MessageBox;
 import com.example.api.RequestMessage;
 import com.example.api.RequestType;
 import com.example.api.ResponseType;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+
+
+import static java.util.Objects.*;
 
 @Slf4j
-public class ClientHandler implements IClientHandler{
-    private Socket socket;
+public class ClientHandler implements IClientHandler {
+    private Socket textSocket;
+    private Socket objectSocket;
+
     private final ChatServer server;
     private DataInputStream in;
     private DataOutputStream out;
+    private ObjectInputStream inObj;
+    private ObjectOutputStream outObj;
+    private static final Object mon = new Object();
     private String nick;
 
 
@@ -24,23 +33,29 @@ public class ClientHandler implements IClientHandler{
     }
 
     @Override
-    public void openConnection(Socket socket) {
-        try {
-            this.socket = socket;
-            this.in = new DataInputStream(socket.getInputStream());
-            this.out = new DataOutputStream(socket.getOutputStream());
-            ThreadManagerServer.getInstance().getExecutorService().execute(() -> {
-                try {
-                    if (isClientAuth()) {
-                        readMessages();
-                    }
-                } finally {
-                    closeConnection();
+    public void openConnection(Socket textSocket, Socket objectSocket) {
+        ThreadManagerServer.getInstance().getExecutorService().execute(() -> {
+            try {
+                this.textSocket = textSocket;
+                this.objectSocket = objectSocket;
+                in = new DataInputStream(textSocket.getInputStream());
+                out = new DataOutputStream(textSocket.getOutputStream());
+                outObj = new ObjectOutputStream(objectSocket.getOutputStream());
+                inObj = new ObjectInputStream(objectSocket.getInputStream());
+
+                if (isClientAuth()) {
+                    readMessages();
                 }
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    closeConnection();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
@@ -60,10 +75,8 @@ public class ClientHandler implements IClientHandler{
     private boolean isClientAuth() {
         while (true) {
             try {
-                String messageStr = in.readUTF();
-                System.out.println(messageStr);
-                RequestMessage message = RequestMessage.createMessage(messageStr);
-                if (message == null) {
+                RequestMessage message = RequestMessage.createMessage(in.readUTF());
+                if (isNull(message)) {
                     log.error(String.format("RequestMessage for %s == null", this.nick));
                     continue;
                 }
@@ -83,9 +96,9 @@ public class ClientHandler implements IClientHandler{
                         }
                     }
                     case AUTH -> {
-                         String nick = SimpleAuthService.getNickFromLoginAndPassword(message.getLogin(),
+                        String nick = DatabaseHandling.getNickByLoginAndPassword(message.getLogin(),
                                 message.getPassword());
-                        if (nick == null) {
+                        if (isNull(nick)) {
                             sendMessage(ResponseType.AUTH_FAILED.getValue());
                             continue;
                         }
@@ -94,12 +107,14 @@ public class ClientHandler implements IClientHandler{
                             continue;
                         }
                         this.nick = nick;
-                        String oldMessages = SerializeMessages.readMessagesFromFile(nick);
-                        sendMessage(String.format("%s %s", ResponseType.RECOVERY.getValue(), oldMessages));
                         sendMessage(String.format("%s %s", ResponseType.AUTH_OK.getValue(), nick));
-                        sendMessageAboutChangingCustomerStatus("Пользователь подключился =)");
-                        log.info(String.format("Пользователь %s подключился", this.nick));
                         server.subscribe(nick, this);
+
+                        String text = SerializeMessages.readMessagesFromFile(nick);
+
+                        ArrayList<MessageBox> oldMessages = DatabaseHandling.deserializeMessagesFromDB(nick);
+                        log.info(String.format("Пользователь %s подключился", this.nick));
+                        transmissionTheHistoryOfCorrespondence(oldMessages, text);
                         return true;
                     }
                 }
@@ -110,21 +125,10 @@ public class ClientHandler implements IClientHandler{
         }
     }
 
-    private void sendMessageAboutChangingCustomerStatus(String msg) {
-        RequestMessage messageChangingCustomerStatus = RequestMessage.createMessage(
-                String.format("%s %s", RequestType.SEND_TO_ALL.getValue(), msg)
-        );
-        if (messageChangingCustomerStatus == null) {
-            return;
-        }
-        server.sendToAll(messageChangingCustomerStatus, nick);
-    }
-
     private void readMessages() {
         try {
             while (true) {
-                String messageStr = in.readUTF();
-                RequestMessage message = RequestMessage.createMessage(messageStr);
+                RequestMessage message = RequestMessage.createMessage(in.readUTF());
                 if (message == null) {
                     log.error(String.format("RequestMessage for %s == null", this.nick));
                     continue;
@@ -135,7 +139,17 @@ public class ClientHandler implements IClientHandler{
                     }
                     case SEND_TO_ALL -> server.sendToAll(message, nick);
                     case SEND_TO_ONE -> server.sendToOneCustomer(message, nick);
-                    case RETENTION -> SerializeMessages.writeMessagesToFile(message, nick);
+                    case RETENTION -> {
+                        SerializeMessages.writeMessagesToFile(message, nick);
+                        //TODO добавить подсчёт объектов через RETENTION
+                        gettingTheHistoryOfCorrespondence(message);
+
+                    }
+                    case START_TRANSFER_OBJECTS, FINISH_TRANSFER_OBJECTS -> {
+                        synchronized (mon) {
+                            mon.notify();
+                        }
+                    }
                 }
             }
         } catch (IOException e) {
@@ -143,38 +157,71 @@ public class ClientHandler implements IClientHandler{
         }
     }
 
-    private void closeConnection() {
-        if (in != null) {
-            try {
-                in.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+    private void transmissionTheHistoryOfCorrespondence(ArrayList<MessageBox> oldMessages, String text) {
+        ThreadManagerServer.getInstance().getExecutorServiceSingle().execute(()-> {
+            sendMessage(String.format("%s %d %s", ResponseType.RECOVERY.getValue(), oldMessages.size(),
+                    text));
+
+            synchronized (mon) {
+                try {
+                    mon.wait();
+                    for (MessageBox messageBox : oldMessages) {
+                        outObj.writeObject(messageBox);
+                    }
+                    mon.wait();
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        }
-        if (out != null) {
-            try {
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if (socket != null) {
-            try {
-                completionOfWorkWithTheClient();
-                socket.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        log.info(String.format("Пользователь %s отключился", this.nick));
+        });
     }
 
-    private void completionOfWorkWithTheClient() {
-        if (nick == null) {
-            return;
+    private void gettingTheHistoryOfCorrespondence(RequestMessage message) {
+        List<MessageBox> oldMessageSession = new ArrayList<>();
+        ThreadManagerServer.getInstance().getExecutorService().execute(() -> {
+            try {
+                sendMessage(ResponseType.START_TRANSFER_OBJECTS.getValue());
+                for (int i = 0; i < message.getCounterObj(); i++) {
+                    Object messageBox = inObj.readObject();
+                    if (messageBox instanceof MessageBox) {
+                        oldMessageSession.add((MessageBox) messageBox);
+                    } else {
+                        log.error("Объект не соответствует типу MessageBox");
+                        throw new IllegalArgumentException("Объект не соответствует типу " +
+                                "MessageBox");
+                    }
+                }
+                DatabaseHandling.serializeMessagesToDB(oldMessageSession, nick);
+                sendMessage(ResponseType.FINISH_TRANSFER_OBJECTS.getValue());
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void closeConnection() throws IOException {
+        if (nonNull(nick)) {
+            server.unsubscribe(nick);
         }
-        sendMessageAboutChangingCustomerStatus("Пользователь отключился!");
-        server.unsubscribe(nick);
+        if (nonNull(in)) {
+            in.close();
+        }
+        if (nonNull(out)) {
+            out.close();
+        }
+        if (nonNull(inObj)) {
+            inObj.close();
+        }
+        if (nonNull(outObj)) {
+            outObj.close();
+        }
+        if (nonNull(objectSocket)) {
+            objectSocket.close();
+        }
+        if (nonNull(textSocket)) {
+            textSocket.close();
+        }
+        log.info(String.format("Пользователь %s отключился", this.nick));
     }
 
 }

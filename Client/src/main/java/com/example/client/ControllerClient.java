@@ -1,10 +1,12 @@
 package com.example.client;
 
+import com.example.api.MessageBox;
+import com.example.api.MessageType;
 import com.example.api.RequestType;
 import com.example.api.ResponseMessage;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -15,14 +17,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.Date;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
+
+
+import static java.util.Objects.*;
 
 @Slf4j
 @NoArgsConstructor
 public class ControllerClient extends Controller implements IControllerClient {
-    public Button ooo;
     @FXML
     private Label label;
     @FXML
@@ -32,13 +38,14 @@ public class ControllerClient extends Controller implements IControllerClient {
     @FXML
     private VBox clientsList;
     @FXML
-    private TextArea areaText;
-    @FXML
-    private VBox messagesBox;
+    private VBox messagesContainer;
     @FXML
     private TextField fieldText;
+    @FXML
+    private ScrollPane scrollPane;
     private String prefix;//Поле отвечает за выбор получателя сообщения, меняется при нажатии на кнопку с ником
     private String toNick;
+    private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     @Setter
     private UIClient uiClient;
@@ -49,27 +56,33 @@ public class ControllerClient extends Controller implements IControllerClient {
             fieldText.requestFocus();
             return;
         }
-        if (prefix == null) {
+        if (isNull(prefix)) {
             prefixIsEmptyError();
             fieldText.requestFocus();
             return;
         }
         RequestType requestType = RequestType.getRequestType(prefix);
         String msgWithoutPrefix = fieldText.getText().trim();
-        if (requestType == null) {
-            log.error("requestType == null");
-            return;
+        if (isNull(requestType)) {
+            String messageError = "requestType == null";
+            log.error(messageError);
+            throw new NullPointerException(messageError);
         }
         switch (requestType) {
             case SEND_TO_ALL -> {
-                String msgToAll = String.format("%s %s", prefix, msgWithoutPrefix);
-                addOutgoingMessageForAll(msgWithoutPrefix);
-                uiClient.getChatClient().sendMessage(msgToAll);
+                MessageBox messageBox = new MessageBox(MessageType.OUTGOING_MESSAGE_FOR_ALL,
+                        LocalDateTime.now(), String.format("->> %s\n\n", msgWithoutPrefix));
+                uiClient.getChatClient().getMessageSession().add(messageBox);
+                addMessage(messageBox);
+                uiClient.getChatClient().sendMessage(String.format("%s %s", prefix, msgWithoutPrefix));
             }
             case SEND_TO_ONE -> {
-                String msgToOne = String.format("%s %s %s", prefix, toNick, msgWithoutPrefix);
-                addOutgoingMessageForOneCustomer(msgWithoutPrefix);
-                uiClient.getChatClient().sendMessage(msgToOne);
+                MessageBox messageBox = new MessageBox(MessageType.OUTGOING_MESSAGE_FOR_ONE_CUSTOMER,
+                        LocalDateTime.now(),
+                        String.format("-> %s %s\n\n", toNick, msgWithoutPrefix));
+                addMessage(messageBox);
+                uiClient.getChatClient().getMessageSession().add(messageBox);
+                uiClient.getChatClient().sendMessage(String.format("%s %s %s", prefix, toNick, msgWithoutPrefix));
             }
         }
         fieldText.clear();
@@ -78,16 +91,67 @@ public class ControllerClient extends Controller implements IControllerClient {
 
     @Override
     public void addIncomingMessage(ResponseMessage message) {
-        areaText.appendText(String.format("From %s %s %s\n", message.getFromNick(), message.getMessage(),createDate("HH:mm")));
+        MessageBox messageBox;
+        switch (message.getType()) {
+            case USER_ON -> messageBox = new MessageBox(MessageType.INFORMATION_MESSAGE,
+                    LocalDateTime.now(), String.format("Пользователь %s присоединился\n\n", message.getNick()));
+
+            case USER_OFF -> messageBox = new MessageBox(MessageType.INFORMATION_MESSAGE,
+                    LocalDateTime.now(), String.format("Пользователь %s вышел из чата\n\n", message.getNick()));
+
+            case RESPONSE -> {
+                messageBox = new MessageBox(MessageType.INCOMING_MESSAGE,
+                        LocalDateTime.now(), String.format("%s: %s\n\n", message.getFromNick(), message.getMessage()));
+                uiClient.getChatClient().getMessageSession().add(messageBox);
+            }
+            default -> messageBox = null;
+        }
+        addMessage(messageBox);
     }
 
     @Override
-    public void appendOldMessages(String oldMessages) {
-        if (oldMessages == null) {
-            return;
+    public void appendOldMessages(List<MessageBox> oldMessageSession) {
+        String targetDate = "";
+        for (MessageBox messageBox : oldMessageSession) {
+            String nextDate = messageBox.getDateTime().format(dateFormat);
+            if (!targetDate.equals(nextDate)) {
+                targetDate = nextDate;
+                addMessage(new MessageBox(MessageType.DATE_OF_MESSAGE, messageBox.getDateTime(), targetDate));
+            }
+            addMessage(messageBox);
         }
-        areaText.appendText(String.format("%s\n%s\nДобро пожаловать в чат!\n", oldMessages, createDate("dd.MM.yyyy")));
-        //TODO добавить проверку даты, если дата одинаковая не добавлять новую(String pattern)
+        String welcomeWithDateMessage = String.format("Добро пожаловать в чат!\n            %s\n\n",
+                LocalDateTime.now().format(dateFormat));
+        addMessage(new MessageBox(MessageType.DATE_OF_MESSAGE, LocalDateTime.now(), welcomeWithDateMessage));
+    }
+
+    @Override
+    public void setLabel() {
+        label.setFont(new Font("Sriracha Regular", 15));
+    }
+
+    @FXML
+    public void logout() {
+        try {
+            exit();
+            uiClient.getStartStage().close();
+            uiClient.start(uiClient.getStartStage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void exit() {
+        try {
+            ChatClient chatClient = uiClient.getChatClient();
+            if (nonNull(chatClient.getNick())) {
+                chatClient.serializeMessages();
+            }
+            chatClient.sendMessage(RequestType.END.getValue());
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -102,49 +166,44 @@ public class ControllerClient extends Controller implements IControllerClient {
         });
     }
 
-    @Override
-    public void viewWindow() {
-        areaText.setVisible(true);
-        fieldText.setVisible(true);
-        buttonSend.setVisible(true);
-        clientsListBox.setVisible(true);
+    private void addMessage(MessageBox messageBox) {
+        Platform.runLater(() -> {
+            Label messageLabel = new Label(messageBox.getMessage());
+            messageLabel.setWrapText(true);
+            HBox messageContainer = new HBox();
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            switch (messageBox.getType()) {
+                case INCOMING_MESSAGE -> messageContainer.getChildren().addAll(messageLabel, spacer);
+                case INFORMATION_MESSAGE ->
+                        messageContainer.getChildren().addAll(messageLabel, spacer); // Входящие слева
+                case OUTGOING_MESSAGE_FOR_ALL, OUTGOING_MESSAGE_FOR_ONE_CUSTOMER ->
+                        messageContainer.getChildren().addAll(spacer, messageLabel); // Исходящие справа
+                case DATE_OF_MESSAGE -> {
+                    messageContainer.setAlignment(Pos.CENTER); // Центрирование
+                    messageContainer.getChildren().add(messageLabel);
+                }
+            }
+            messagesContainer.getChildren().add(messageContainer);
+        });
+        // Прокрутка вниз после добавления сообщения
+        messagesContainer.heightProperty().addListener((observable, oldValue, newValue) -> {
+            scrollPane.setVvalue(1.0);
+        });
     }
 
-    @Override
-    public void setLabel() {
-        label.setFont(new Font("Sriracha Regular", 15));
-    }
-
-    @Override
-    public void exit() {
-        uiClient.getChatClient().sendMessage(String.format("%s %s", RequestType.RETENTION.getValue(), areaText.getText()));
-        uiClient.getChatClient().sendMessage(RequestType.END.getValue());
-    }
-
-    /**
-     * Метод перезапускает окно клиента, возвращая нас на окно авторизации.
-     * Отключает текущее подключение клиента через метод exit()
-     */
-    @FXML
-    public void logout() {
-        exit();
-        try {
-            uiClient.start(uiClient.getStartStage());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void addOutgoingMessageForAll(String message) {
-        areaText.appendText(String.format("->> %s %s\n", message,createDate("HH:mm")));
-    }
-
-    private void addOutgoingMessageForOneCustomer(String message) {
-        areaText.appendText(String.format("->%s %s %s\n", toNick, message,createDate("HH:mm")));
+    private void prefixIsEmptyError() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Упс!");
+        alert.setHeaderText(null);
+        alert.setContentText("Получатель не выбран");
+        alert.showAndWait();
     }
 
     private void addButtonToAll(int arrNicksLength, ToggleGroup toggleGroup) {
         ToggleButton buttonAll = new ToggleButton("Отправить всем");
+        buttonAll.getStyleClass().add("toggle-button-client");
         buttonAll.setMinWidth(170);
         buttonAll.setOnAction(event -> {
             if (arrNicksLength > 1) {
@@ -168,10 +227,11 @@ public class ControllerClient extends Controller implements IControllerClient {
     private void addButtonToOneCustomer(String[] nicks, ToggleGroup toggleGroup) {
         Arrays.sort(nicks);
         for (String nick : nicks) {
-            if (nick.equals( uiClient.getChatClient().getNick())) {
+            if (nick.equals(uiClient.getChatClient().getNick())) {
                 continue;
             }
             ToggleButton button = new ToggleButton(nick);
+            button.getStyleClass().add("toggle-button-client");
             button.setMinWidth(170);
             // При нажатии на кнопку задаем префикс сообщения (появляется возможность отправить сообщение конкретному
             // пользователю)
@@ -183,18 +243,6 @@ public class ControllerClient extends Controller implements IControllerClient {
             button.setToggleGroup(toggleGroup);
             clientsList.getChildren().add(button);
         }
-    }
-
-    private String createDate(String pattern) {
-        return new SimpleDateFormat(pattern)
-                .format(new Date(System.currentTimeMillis()));
-    }
-    private void prefixIsEmptyError() {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Упс!");
-        alert.setHeaderText(null);
-        alert.setContentText("Получатель не выбран");
-        alert.showAndWait();
     }
 
 }

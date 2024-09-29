@@ -11,6 +11,8 @@ public class RequestMessage {
     private final String nick;
     private final String login;
     private final String password;
+    private final int counterObj;
+
 
     public RequestMessage(String login, String password, RequestType type) {
         this.type = type;
@@ -18,6 +20,7 @@ public class RequestMessage {
         this.password = password;
         this.nick = null;
         this.message = null;
+        this.counterObj = 0;
     }
 
     public RequestMessage(RequestType type) {
@@ -26,6 +29,7 @@ public class RequestMessage {
         this.password = null;
         this.nick = null;
         this.message = null;
+        this.counterObj = 0;
     }
 
     public RequestMessage(RequestType type, String nick, String message) {
@@ -34,11 +38,22 @@ public class RequestMessage {
         this.nick = nick;
         this.login = null;
         this.password = null;
+        this.counterObj = 0;
     }
 
     public RequestMessage(RequestType type, String message) {
         this.message = message;
         this.type = type;
+        this.nick = null;
+        this.login = null;
+        this.password = null;
+        this.counterObj = 0;
+    }
+
+    public RequestMessage(RequestType type, int counterObj, String message) {
+        this.message = message;
+        this.type = type;
+        this.counterObj = counterObj;
         this.nick = null;
         this.login = null;
         this.password = null;
@@ -54,7 +69,7 @@ public class RequestMessage {
             throw new NullPointerException("requestType == null");
         }
         switch (requestType) {
-            case END -> {
+            case END, START_TRANSFER_OBJECTS, FINISH_TRANSFER_OBJECTS -> {
                 return requestType.createMessage(null);
             }
             default -> {

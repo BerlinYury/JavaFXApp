@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.IOException;
+import java.util.Objects;
 
 
 @NoArgsConstructor
@@ -35,15 +36,15 @@ public class UIClient extends Application implements IUIClient {
     @Override
     public void start(Stage stage) throws IOException {
         // Создание сцены для главного окна
-        FXMLLoader loader = new FXMLLoader(UIClient.class.getResource("hello-view.fxml"));
+        FXMLLoader loader = new FXMLLoader(UIClient.class.getResource("start-view.fxml"));
         Parent root = loader.load();
         controllerClient = loader.getController();
         controllerClient.setUiClient(this);
 
         this.startStage = stage;
-        Scene scene = new Scene(root, 650, 400);
+        Scene scene = new Scene(root, 800, 500);
+        scene.getStylesheets().add(Objects.requireNonNull(UIClient.class.getResource("style.css")).toExternalForm());
         startStage.setScene(scene);
-        startStage.show();
         controllerClient.setLabel();
         startStage.setOnCloseRequest(event -> {
             controllerAuthenticate.offTimer();
@@ -58,6 +59,7 @@ public class UIClient extends Application implements IUIClient {
 
         authenticateStage = new Stage();
         Scene secondaryScene = new Scene(secondaryRoot, 320, 170);
+        secondaryScene.getStylesheets().add(Objects.requireNonNull(UIClient.class.getResource("style.css")).toExternalForm());
         authenticateStage.setTitle("Authenticate");
         authenticateStage.setScene(secondaryScene);
         authenticateStage.show();
@@ -74,6 +76,7 @@ public class UIClient extends Application implements IUIClient {
 
         registrationStage = new Stage();
         Scene thirdScene = new Scene(thirdRoot, 320, 400);
+        thirdScene.getStylesheets().add(Objects.requireNonNull(UIClient.class.getResource("style.css")).toExternalForm());
         registrationStage.setTitle("Registration");
         registrationStage.setScene(thirdScene);
         registrationStage.setOnCloseRequest(event -> {
@@ -81,8 +84,7 @@ public class UIClient extends Application implements IUIClient {
             authenticateStage.show();
         });
 
-        chatClient = ClientRunner.getContainer().select(ChatClient.class).get();
-        chatClient.setControllers(controllerClient, controllerAuthenticate, controllerRegistration);
+        chatClient = new ChatClient(controllerClient, controllerAuthenticate, controllerRegistration);
         chatClient.openConnection();
     }
 }

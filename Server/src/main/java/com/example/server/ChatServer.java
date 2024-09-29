@@ -1,11 +1,12 @@
 package com.example.server;
 
+import com.example.api.MessageBox;
+import com.example.api.MessageType;
 import com.example.api.RequestMessage;
 import com.example.api.ResponseType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import javafx.scene.control.Label;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 @Slf4j
 @ApplicationScoped
@@ -23,7 +25,6 @@ public class ChatServer implements IChatServer {
     @Inject
     private Instance<ClientHandler> clientHandlerInstance;
     private final ConcurrentHashMap<String, ClientHandler> clients = new ConcurrentHashMap<>();
-    private ExecutorService executorService;
     @Getter
     private ServerSocket serverSocket;
 
@@ -34,9 +35,10 @@ public class ChatServer implements IChatServer {
             serverSocket = new ServerSocket(8129);
             isRunningServerUI(args);
             while (true) {
-                Socket socket = serverSocket.accept();
+                Socket textSocket = serverSocket.accept();
+                Socket objectSocket = serverSocket.accept();
                 ClientHandler clientHandler = clientHandlerInstance.get();
-                clientHandler.openConnection(socket);
+                clientHandler.openConnection(textSocket,objectSocket);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -52,45 +54,60 @@ public class ChatServer implements IChatServer {
     }
 
     @Override
-    public synchronized void subscribe(String nick, ClientHandler client) {
-        if (nick == null) {
-            log.error("nick == null");
-            return;
-        }
-        clients.put(nick, client);
-        sendClientsList();
-    }
-
-    @Override
-    public synchronized void unsubscribe(String nick) {
-        clients.remove(nick);
-        sendClientsList();
-    }
-
-    @Override
     public void sendToAll(RequestMessage requestMessage, String fromNick) {
-        String message = String.format("%s %s: %s", ResponseType.RESPONSE.getValue(), fromNick,
+        String message = String.format("%s %s %s", ResponseType.RESPONSE.getValue(), fromNick,
                 requestMessage.getMessage());
-        // Отправляем сообщение всем клиентам, кроме отправителя
+
         for (ClientHandler client : clients.values()) {
-            if (!client.getNick().equals(fromNick))
+            if (client.getNick().equals(fromNick)){
+                continue;
+            }
+                client.sendMessage(message);
+        }
+    }
+
+    @Override
+    public void sendToAll(ResponseType responseType, String fromNick) {
+        String message = String.format("%s %s", responseType.getValue(), fromNick);
+
+        for (ClientHandler client : clients.values()) {
+            if (client.getNick().equals(fromNick)){
+                continue;
+            }
                 client.sendMessage(message);
         }
     }
 
     @Override
     public void sendToOneCustomer(RequestMessage requestMessage, String fromNick) {
-        String message = String.format("%s %s: %s", ResponseType.RESPONSE.getValue(), fromNick,
+        String toNick = requestMessage.getNick();
+        String message = String.format("%s %s %s", ResponseType.RESPONSE.getValue(), fromNick,
                 requestMessage.getMessage());
-        if (clients.containsKey(requestMessage.getNick())) {
-            clients.get(requestMessage.getNick()).sendMessage(message);
+
+        if (clients.containsKey(toNick)) {
+            clients.get(toNick).sendMessage(message);
         } else {
-            try {
-                log.error(String.format("В чате нет пользователя с ником: %s", requestMessage.getNick()));
-                throw new Exception(String.format("В чате нет пользователя с ником: %s", requestMessage.getNick()));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+          DatabaseHandling.addToDBOfflineMessage(new MessageBox(MessageType.OUTGOING_MESSAGE_FOR_ONE_CUSTOMER, LocalDateTime.now(),requestMessage.getMessage()),toNick);
+        }
+    }
+
+    @Override
+    public synchronized void subscribe(String nick, ClientHandler client) {
+        clients.put(nick, client);
+        sendClientsList();
+        sendToAll(ResponseType.USER_ON, nick);
+    }
+
+    @Override
+    public synchronized void unsubscribe(String nick) {
+        clients.remove(nick);
+        sendClientsList();
+        sendToAll(ResponseType.USER_OFF, nick);
+    }
+
+    private void sendClientsList() {
+        for (ClientHandler client : clients.values()) {
+            client.sendMessage(String.format("%s %s", ResponseType.AUTH_CHANGES.getValue(), clients.keySet()));
         }
     }
 
@@ -106,12 +123,6 @@ public class ChatServer implements IChatServer {
             serverSocket.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private void sendClientsList() {
-        for (ClientHandler client : clients.values()) {
-            client.sendMessage(String.format("%s %s", ResponseType.AUTH_CHANGES.getValue(), clients.keySet()));
         }
     }
 
