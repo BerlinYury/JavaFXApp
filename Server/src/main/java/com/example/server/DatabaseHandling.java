@@ -105,10 +105,11 @@ public abstract class DatabaseHandling {
                          """;
             ResultSet resultSet = selectStatement.executeQuery(String.format(sql, nick));
             while (resultSet.next()) {
-                MessageType type = MessageType.valueOf(resultSet.getString(1));
-                String message = resultSet.getString(3);
-                LocalDateTime dateTime = resultSet.getObject(2, LocalDateTime.class);
-                oldMessages.add(new MessageBox(type, dateTime, message));
+                oldMessages.add(new MessageBox.Builder()
+                        .type(MessageType.valueOf(resultSet.getString(1)))
+                        .dateTime(resultSet.getObject(2, LocalDateTime.class))
+                        .message(resultSet.getString(3))
+                        .build());
             }
         } catch (SQLException e) {
             e.printStackTrace();

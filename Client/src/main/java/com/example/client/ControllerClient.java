@@ -32,10 +32,6 @@ public class ControllerClient extends Controller implements IControllerClient {
     @FXML
     private Label label;
     @FXML
-    private Button buttonSend;
-    @FXML
-    private VBox clientsListBox;
-    @FXML
     private VBox clientsList;
     @FXML
     private VBox messagesContainer;
@@ -70,16 +66,21 @@ public class ControllerClient extends Controller implements IControllerClient {
         }
         switch (requestType) {
             case SEND_TO_ALL -> {
-                MessageBox messageBox = new MessageBox(MessageType.OUTGOING_MESSAGE_FOR_ALL,
-                        LocalDateTime.now(), String.format("->> %s\n\n", msgWithoutPrefix));
+                MessageBox messageBox = new MessageBox.Builder()
+                        .type(MessageType.OUTGOING_MESSAGE_FOR_ALL)
+                        .dateTime(LocalDateTime.now())
+                        .message(String.format("->> %s\n\n", msgWithoutPrefix))
+                        .build();
                 uiClient.getChatClient().getMessageSession().add(messageBox);
                 addMessage(messageBox);
                 uiClient.getChatClient().sendMessage(String.format("%s %s", prefix, msgWithoutPrefix));
             }
             case SEND_TO_ONE -> {
-                MessageBox messageBox = new MessageBox(MessageType.OUTGOING_MESSAGE_FOR_ONE_CUSTOMER,
-                        LocalDateTime.now(),
-                        String.format("-> %s %s\n\n", toNick, msgWithoutPrefix));
+                MessageBox messageBox = new MessageBox.Builder()
+                        .type(MessageType.OUTGOING_MESSAGE_FOR_ONE_CUSTOMER)
+                        .dateTime(LocalDateTime.now())
+                        .message(String.format("-> %s %s\n\n", toNick, msgWithoutPrefix))
+                        .build();
                 addMessage(messageBox);
                 uiClient.getChatClient().getMessageSession().add(messageBox);
                 uiClient.getChatClient().sendMessage(String.format("%s %s %s", prefix, toNick, msgWithoutPrefix));
@@ -93,21 +94,29 @@ public class ControllerClient extends Controller implements IControllerClient {
     public void addIncomingMessage(ResponseMessage message) {
         MessageBox messageBox;
         switch (message.getType()) {
-            case USER_ON -> messageBox = new MessageBox(MessageType.INFORMATION_MESSAGE,
-                    LocalDateTime.now(), String.format("Пользователь %s присоединился\n\n", message.getNick()));
-
-            case USER_OFF -> messageBox = new MessageBox(MessageType.INFORMATION_MESSAGE,
-                    LocalDateTime.now(), String.format("Пользователь %s вышел из чата\n\n", message.getNick()));
-
+            case USER_ON -> messageBox = new MessageBox.Builder()
+                    .type(MessageType.INFORMATION_MESSAGE)
+                    .dateTime(LocalDateTime.now())
+                    .message(String.format("Пользователь %s присоединился\n\n", message.getNick()))
+                    .build();
+            case USER_OFF -> messageBox = new MessageBox.Builder()
+                    .type(MessageType.INFORMATION_MESSAGE)
+                    .dateTime(LocalDateTime.now())
+                    .message(String.format("Пользователь %s вышел из чата\n\n", message.getNick()))
+                    .build();
             case RESPONSE -> {
-                messageBox = new MessageBox(MessageType.INCOMING_MESSAGE,
-                        LocalDateTime.now(), String.format("%s: %s\n\n", message.getFromNick(), message.getMessage()));
+                messageBox = new MessageBox.Builder()
+                        .type(MessageType.INCOMING_MESSAGE)
+                        .dateTime(LocalDateTime.now())
+                        .message(String.format("%s: %s\n\n", message.getFromNick(), message.getMessage()))
+                        .build();
                 uiClient.getChatClient().getMessageSession().add(messageBox);
             }
             default -> messageBox = null;
         }
         addMessage(messageBox);
     }
+
 
     @Override
     public void appendOldMessages(List<MessageBox> oldMessageSession) {
@@ -116,13 +125,19 @@ public class ControllerClient extends Controller implements IControllerClient {
             String nextDate = messageBox.getDateTime().format(dateFormat);
             if (!targetDate.equals(nextDate)) {
                 targetDate = nextDate;
-                addMessage(new MessageBox(MessageType.DATE_OF_MESSAGE, messageBox.getDateTime(), targetDate));
+                addMessage(new MessageBox.Builder()
+                        .type(MessageType.DATE_OF_MESSAGE)
+                        .message(targetDate)
+                        .build());
             }
             addMessage(messageBox);
         }
         String welcomeWithDateMessage = String.format("Добро пожаловать в чат!\n            %s\n\n",
                 LocalDateTime.now().format(dateFormat));
-        addMessage(new MessageBox(MessageType.DATE_OF_MESSAGE, LocalDateTime.now(), welcomeWithDateMessage));
+        addMessage(new MessageBox.Builder()
+                .type(MessageType.DATE_OF_MESSAGE)
+                .message(welcomeWithDateMessage)
+                .build());
     }
 
     @Override
@@ -187,10 +202,7 @@ public class ControllerClient extends Controller implements IControllerClient {
             }
             messagesContainer.getChildren().add(messageContainer);
         });
-        // Прокрутка вниз после добавления сообщения
-        messagesContainer.heightProperty().addListener((observable, oldValue, newValue) -> {
-            scrollPane.setVvalue(1.0);
-        });
+        messagesContainer.heightProperty().addListener((observable, oldValue, newValue) -> scrollPane.setVvalue(1.0));
     }
 
     private void prefixIsEmptyError() {

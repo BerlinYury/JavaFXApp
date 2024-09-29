@@ -38,7 +38,7 @@ public class ChatServer implements IChatServer {
                 Socket textSocket = serverSocket.accept();
                 Socket objectSocket = serverSocket.accept();
                 ClientHandler clientHandler = clientHandlerInstance.get();
-                clientHandler.openConnection(textSocket,objectSocket);
+                clientHandler.openConnection(textSocket, objectSocket);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -59,10 +59,10 @@ public class ChatServer implements IChatServer {
                 requestMessage.getMessage());
 
         for (ClientHandler client : clients.values()) {
-            if (client.getNick().equals(fromNick)){
+            if (client.getNick().equals(fromNick)) {
                 continue;
             }
-                client.sendMessage(message);
+            client.sendMessage(message);
         }
     }
 
@@ -71,10 +71,10 @@ public class ChatServer implements IChatServer {
         String message = String.format("%s %s", responseType.getValue(), fromNick);
 
         for (ClientHandler client : clients.values()) {
-            if (client.getNick().equals(fromNick)){
+            if (client.getNick().equals(fromNick)) {
                 continue;
             }
-                client.sendMessage(message);
+            client.sendMessage(message);
         }
     }
 
@@ -87,7 +87,11 @@ public class ChatServer implements IChatServer {
         if (clients.containsKey(toNick)) {
             clients.get(toNick).sendMessage(message);
         } else {
-          DatabaseHandling.addToDBOfflineMessage(new MessageBox(MessageType.OUTGOING_MESSAGE_FOR_ONE_CUSTOMER, LocalDateTime.now(),requestMessage.getMessage()),toNick);
+            DatabaseHandling.addToDBOfflineMessage(new MessageBox.Builder()
+                    .type(MessageType.OUTGOING_MESSAGE_FOR_ONE_CUSTOMER)
+                    .dateTime(LocalDateTime.now())
+                    .message(requestMessage.getMessage())
+                    .build(), toNick);
         }
     }
 

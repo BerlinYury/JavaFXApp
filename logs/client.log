@@ -8984,3 +8984,8 @@
 2024-09-29 18:08:11,611 INFO com.example.client.ChatClient [Thread-5] Клиент t2 авторизован
 2024-09-29 18:08:31,644 INFO com.example.client.ChatClient [Thread-9] Клиент null открыт
 2024-09-29 18:08:48,560 INFO com.example.client.ChatClient [Thread-9] Клиент null открыт
+2024-09-29 19:18:42,463 INFO com.example.client.ChatClient [Thread-5] Клиент null открыт
+2024-09-29 19:18:50,308 INFO com.example.client.ChatClient [Thread-5] Клиент t авторизован
+2024-09-29 19:19:05,217 INFO com.example.client.ChatClient [Thread-5] Клиент null открыт
+2024-09-29 19:19:17,491 INFO com.example.client.ChatClient [Thread-5] Клиент t2 авторизован
+2024-09-29 19:19:58,038 INFO com.example.client.ChatClient [Thread-9] Клиент null открыт

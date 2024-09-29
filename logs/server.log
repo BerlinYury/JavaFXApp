@@ -963,3 +963,284 @@
 2024-09-29 18:08:51,790 INFO com.example.server.ClientHandler [Thread-10] Пользователь null отключился
 2024-09-29 18:09:12,071 INFO com.example.server.ChatServer [main] Server off
 2024-09-29 18:09:12,097 INFO org.jboss.weld.Bootstrap [main] WELD-ENV-002001: Weld SE container e9c7331e-0596-4f2d-94d8-a6dfb8a4dd6b shut down
+2024-09-29 19:18:03,933 DEBUG org.jboss.logging [main] Logging Provider: org.jboss.logging.Slf4jLoggerProvider
+2024-09-29 19:18:03,943 INFO org.jboss.weld.Version [main] WELD-000900: 5.1.2 (Final)
+2024-09-29 19:18:04,095 DEBUG org.jboss.weld.Bootstrap [main] WELD-ENV-000030: Cannot load class using the ResourceLoader: org.jboss.jandex.Index
+2024-09-29 19:18:04,124 DEBUG org.jboss.weld.environment.deployment.discovery.DefaultBeanArchiveScanner [main] Resolved bean archive reference: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes for URL: file:/C:/Users/Berli/IdeaProjects/JavaFXApp/Server/target/classes/META-INF/beans.xml
+2024-09-29 19:18:04,126 DEBUG org.jboss.weld.Bootstrap [main] WELD-ENV-000032: Processing bean archive reference: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes
+2024-09-29 19:18:04,127 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle path: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes
+2024-09-29 19:18:04,127 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes
+2024-09-29 19:18:04,128 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes\com
+2024-09-29 19:18:04,129 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes\com\example
+2024-09-29 19:18:04,129 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes\com\example\server
+2024-09-29 19:18:04,130 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes\Files
+2024-09-29 19:18:04,130 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes\META-INF
+2024-09-29 19:18:04,131 DEBUG org.jboss.weld.Bootstrap [main] WELD-ENV-000039: Bean archive reference C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes handled by org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler@5158b42f
+2024-09-29 19:18:04,131 INFO org.jboss.weld.Bootstrap [main] WELD-ENV-000014: Falling back to Java Reflection for bean-discovery-mode="annotated" discovery. Add org.jboss:jandex to the classpath to speed-up startup.
+2024-09-29 19:18:04,170 DEBUG org.jboss.weld.Bootstrap [main] WELD-ENV-000024: Archive isolation enabled - creating multiple isolated bean archives if needed
+2024-09-29 19:18:04,243 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap 
+2024-09-29 19:18:04,244 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startContainer 
+2024-09-29 19:18:04,255 DEBUG org.jboss.weld.Configuration [main] WELD-001902: Following configuration was detected and applied: {org.jboss.weld.executor.threadPoolType=COMMON, org.jboss.weld.construction.relaxed=true, org.jboss.weld.bootstrap.allowOptimizedCleanup=true}
+2024-09-29 19:18:04,258 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startContainer > initServices 
+2024-09-29 19:18:04,284 DEBUG org.jboss.weld.Bootstrap [main] Using Weld modules: []
+2024-09-29 19:18:04,312 DEBUG org.jboss.weld.Bootstrap [main] Using instantiator: org.jboss.weld.bean.proxy.UnsafeProxyInstantiator
+2024-09-29 19:18:04,329 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startContainer > initServices (71 ms)
+2024-09-29 19:18:04,329 INFO org.jboss.weld.Bootstrap [main] WELD-000101: Transactional services not available. Injection of @Inject UserTransaction not available. Transactional observers will be invoked synchronously.
+2024-09-29 19:18:04,353 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startContainer > builtinContexts 
+2024-09-29 19:18:04,412 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%ApplicationContext
+2024-09-29 19:18:04,417 DEBUG org.jboss.weld.Reflection [main] WELD-000601: interface jakarta.inject.Singleton is missing @Target. Weld will use this annotation, however this may make the application unportable.
+2024-09-29 19:18:04,417 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%SingletonContext
+2024-09-29 19:18:04,420 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%BoundSessionContext
+2024-09-29 19:18:04,423 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%BoundConversationContext
+2024-09-29 19:18:04,423 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%BoundRequestContext
+2024-09-29 19:18:04,424 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%RequestContext
+2024-09-29 19:18:04,424 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%DependentContext
+2024-09-29 19:18:04,424 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startContainer > builtinContexts (70 ms)
+2024-09-29 19:18:04,426 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startContainer > readDeploymentStructure 
+2024-09-29 19:18:04,446 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [jakarta.enterprise.inject.spi.BeanManager] with qualifiers [@Default]
+2024-09-29 19:18:04,447 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [org.jboss.weld.manager.BeanManagerImpl] with qualifiers [@Default]
+2024-09-29 19:18:04,447 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startContainer > readDeploymentStructure (21 ms)
+2024-09-29 19:18:04,448 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startContainer (203 ms)
+2024-09-29 19:18:04,450 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startInitialization 
+2024-09-29 19:18:04,452 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [jakarta.enterprise.inject.spi.BeanManager] with qualifiers [@Default]
+2024-09-29 19:18:04,452 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [org.jboss.weld.manager.BeanManagerImpl] with qualifiers [@Default]
+2024-09-29 19:18:04,481 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Extension [class org.jboss.weld.bootstrap.WeldExtension] with qualifiers [@Default]; n/a
+2024-09-29 19:18:04,482 DEBUG org.jboss.weld.Bootstrap [main] WELD-000168: Extension bean deployed: Extension [class org.jboss.weld.bootstrap.WeldExtension] with qualifiers [@Default]; n/a
+2024-09-29 19:18:04,492 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Extension [class org.jboss.weld.environment.se.WeldSEBeanRegistrant] with qualifiers [@Default]; jar:file:/C:/Users/Berli/.m2/repository/org/jboss/weld/se/weld-se-core/5.1.2.Final/weld-se-core-5.1.2.Final.jar!/META-INF/services/jakarta.enterprise.inject.spi.Extension@1[org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2]
+2024-09-29 19:18:04,493 DEBUG org.jboss.weld.Bootstrap [main] WELD-000168: Extension bean deployed: Extension [class org.jboss.weld.environment.se.WeldSEBeanRegistrant] with qualifiers [@Default]; jar:file:/C:/Users/Berli/.m2/repository/org/jboss/weld/se/weld-se-core/5.1.2.Final/weld-se-core-5.1.2.Final.jar!/META-INF/services/jakarta.enterprise.inject.spi.Extension@1[org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2]
+2024-09-29 19:18:04,493 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [jakarta.enterprise.inject.spi.BeanManager] with qualifiers [@Default]
+2024-09-29 19:18:04,493 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [org.jboss.weld.manager.BeanManagerImpl] with qualifiers [@Default]
+2024-09-29 19:18:04,493 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startInitialization > BeforeBeanDiscovery 
+2024-09-29 19:18:04,530 DEBUG org.jboss.weld.Bootstrap [main] WELD-000162: BeforeBeanDiscovery.addAnnotatedType() called by org.jboss.weld.bootstrap.WeldExtension@1046d517 for [BackedAnnotatedType] public @Vetoed @Interceptor @ActivateRequestContext @Priority class org.jboss.weld.contexts.activator.ActivateRequestContextInterceptor
+2024-09-29 19:18:04,534 DEBUG org.jboss.weld.Bootstrap [main] WELD-000162: BeforeBeanDiscovery.addAnnotatedType() called by org.jboss.weld.bootstrap.WeldExtension@1046d517 for [BackedAnnotatedType] public @Vetoed @Interceptor @ActivateRequestContext @Priority class org.jboss.weld.contexts.activator.CdiRequestContextActivatorInterceptor
+2024-09-29 19:18:04,541 DEBUG org.jboss.weld.Bootstrap [main] WELD-000162: BeforeBeanDiscovery.addAnnotatedType() called by org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2 for [BackedAnnotatedType] public @Vetoed @ApplicationScoped class org.jboss.weld.environment.se.beans.ParametersFactory
+2024-09-29 19:18:04,544 DEBUG org.jboss.weld.Bootstrap [main] WELD-000162: BeforeBeanDiscovery.addAnnotatedType() called by org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2 for [BackedAnnotatedType] public @Decorator class org.jboss.weld.environment.se.threading.RunnableDecorator
+2024-09-29 19:18:04,547 DEBUG org.jboss.weld.Bootstrap [main] WELD-000162: BeforeBeanDiscovery.addAnnotatedType() called by org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2 for [BackedAnnotatedType] public @Vetoed @Interceptor @ActivateThreadScope @Priority class org.jboss.weld.environment.se.contexts.activators.ActivateThreadScopeInterceptor
+2024-09-29 19:18:04,548 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startInitialization > BeforeBeanDiscovery (54 ms)
+2024-09-29 19:18:04,558 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startInitialization > AfterTypeDiscovery 
+2024-09-29 19:18:04,559 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startInitialization > AfterTypeDiscovery (0 ms)
+2024-09-29 19:18:04,564 DEBUG org.jboss.weld.Bootstrap [main] WELD-000103: Enabled alternatives for Weld BeanManager for org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses [bean count=4]: (empty collection)
+2024-09-29 19:18:04,564 DEBUG org.jboss.weld.Bootstrap [main] WELD-000104: Enabled decorator types for Weld BeanManager for org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses [bean count=4]: (empty collection)
+2024-09-29 19:18:04,564 DEBUG org.jboss.weld.Bootstrap [main] WELD-000105: Enabled interceptor types for Weld BeanManager for org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses [bean count=4]: 
+  - class org.jboss.weld.contexts.activator.ActivateRequestContextInterceptor,
+  - class org.jboss.weld.contexts.activator.CdiRequestContextActivatorInterceptor,
+  - class org.jboss.weld.environment.se.contexts.activators.ActivateThreadScopeInterceptor
+2024-09-29 19:18:04,571 DEBUG org.jboss.weld.Bootstrap [main] WELD-000103: Enabled alternatives for Weld BeanManager for C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes [bean count=2]: (empty collection)
+2024-09-29 19:18:04,571 DEBUG org.jboss.weld.Bootstrap [main] WELD-000104: Enabled decorator types for Weld BeanManager for C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes [bean count=2]: (empty collection)
+2024-09-29 19:18:04,571 DEBUG org.jboss.weld.Bootstrap [main] WELD-000105: Enabled interceptor types for Weld BeanManager for C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes [bean count=2]: 
+  - class org.jboss.weld.contexts.activator.ActivateRequestContextInterceptor,
+  - class org.jboss.weld.contexts.activator.CdiRequestContextActivatorInterceptor,
+  - class org.jboss.weld.environment.se.contexts.activators.ActivateThreadScopeInterceptor
+2024-09-29 19:18:04,571 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startInitialization (121 ms)
+2024-09-29 19:18:04,571 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > deployBeans 
+2024-09-29 19:18:04,626 DEBUG org.jboss.weld.Bootstrap [main] WELD-000108: Decorator: Decorator [class org.jboss.weld.environment.se.threading.RunnableDecorator] decorates [Runnable] with delegate type [Runnable] and delegate qualifiers [@Default]
+2024-09-29 19:18:04,627 DEBUG org.jboss.weld.Bootstrap [main] WELD-000107: Interceptor: Interceptor [class org.jboss.weld.contexts.activator.ActivateRequestContextInterceptor intercepts @ActivateRequestContext]
+2024-09-29 19:18:04,627 DEBUG org.jboss.weld.Bootstrap [main] WELD-000107: Interceptor: Interceptor [class org.jboss.weld.contexts.activator.CdiRequestContextActivatorInterceptor intercepts @ActivateRequestContext]
+2024-09-29 19:18:04,628 DEBUG org.jboss.weld.Bootstrap [main] WELD-000107: Interceptor: Interceptor [class org.jboss.weld.environment.se.contexts.activators.ActivateThreadScopeInterceptor intercepts @ActivateThreadScope]
+2024-09-29 19:18:04,634 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%DependentContext
+2024-09-29 19:18:04,634 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Decorated]
+2024-09-29 19:18:04,634 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%BoundConversationContext
+2024-09-29 19:18:04,635 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Intercepted]
+2024-09-29 19:18:04,635 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Default]
+2024-09-29 19:18:04,635 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Managed Bean [class org.jboss.weld.environment.se.beans.ParametersFactory] with qualifiers [@Any @Default]
+2024-09-29 19:18:04,635 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%BoundSessionContext
+2024-09-29 19:18:04,635 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%ApplicationContext
+2024-09-29 19:18:04,636 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Decorator] with qualifiers [@Default]
+2024-09-29 19:18:04,637 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%RequestContext
+2024-09-29 19:18:04,637 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.event.Event] with qualifiers [@Default]
+2024-09-29 19:18:04,637 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.InjectionPoint] with qualifiers [@Default]
+2024-09-29 19:18:04,637 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.InterceptionFactory] with qualifiers [@Default]
+2024-09-29 19:18:04,637 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Producer Method [String[]] with qualifiers [@Parameters @Any] declared as [[UnbackedAnnotatedMethod] @Produces @Parameters public org.jboss.weld.environment.se.beans.ParametersFactory.getArgsAsArray()]
+2024-09-29 19:18:04,637 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%Conversation
+2024-09-29 19:18:04,638 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Producer Method [List<String>] with qualifiers [@Parameters @Any] declared as [[UnbackedAnnotatedMethod] @Produces @Parameters public org.jboss.weld.environment.se.beans.ParametersFactory.getArgs()]
+2024-09-29 19:18:04,638 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%RequestContextController
+2024-09-29 19:18:04,638 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Interceptor] with qualifiers [@Default]
+2024-09-29 19:18:04,638 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.Instance] with qualifiers [@Default]
+2024-09-29 19:18:04,638 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.EventMetadata] with qualifiers [@Default]
+2024-09-29 19:18:04,638 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%BoundRequestContext
+2024-09-29 19:18:04,639 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%SingletonContext
+2024-09-29 19:18:04,640 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%Conversation
+2024-09-29 19:18:04,640 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%DependentContext
+2024-09-29 19:18:04,640 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Default]
+2024-09-29 19:18:04,640 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%RequestContextController
+2024-09-29 19:18:04,640 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.EventMetadata] with qualifiers [@Default]
+2024-09-29 19:18:04,640 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.InterceptionFactory] with qualifiers [@Default]
+2024-09-29 19:18:04,641 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.InjectionPoint] with qualifiers [@Default]
+2024-09-29 19:18:04,641 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%SingletonContext
+2024-09-29 19:18:04,641 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Interceptor] with qualifiers [@Default]
+2024-09-29 19:18:04,641 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.event.Event] with qualifiers [@Default]
+2024-09-29 19:18:04,641 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.Instance] with qualifiers [@Default]
+2024-09-29 19:18:04,641 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Decorated]
+2024-09-29 19:18:04,641 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Decorator] with qualifiers [@Default]
+2024-09-29 19:18:04,641 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%RequestContext
+2024-09-29 19:18:04,641 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Managed Bean [class com.example.server.ClHFactory] with qualifiers [@Any @Default]
+2024-09-29 19:18:04,642 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Managed Bean [class com.example.server.ChatServer] with qualifiers [@Any @Default]
+2024-09-29 19:18:04,642 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%ApplicationContext
+2024-09-29 19:18:04,642 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%BoundConversationContext
+2024-09-29 19:18:04,642 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Intercepted]
+2024-09-29 19:18:04,642 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Producer Method [ClientHandler] with qualifiers [@Any @Default] declared as [[BackedAnnotatedMethod] @Produces public static com.example.server.ClHFactory.factory()]
+2024-09-29 19:18:04,642 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%BoundSessionContext
+2024-09-29 19:18:04,643 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%BoundRequestContext
+2024-09-29 19:18:04,643 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > deployBeans > AfterBeanDiscovery 
+2024-09-29 19:18:04,648 DEBUG org.jboss.weld.Bootstrap [main] WELD-000156: AfterBeanDiscovery.addContext() called by org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2 for org.jboss.weld.environment.se.contexts.ThreadContext@3549bca9
+2024-09-29 19:18:04,655 DEBUG org.jboss.weld.Bootstrap [main] WELD-000154: AfterBeanDiscovery.addBean() called by org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2 for Configurator Bean [class org.jboss.weld.environment.se.WeldSEBeanRegistrant, types: WeldContainer, Object, qualifiers: @Any @Default]
+2024-09-29 19:18:04,656 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Configurator Bean [class org.jboss.weld.environment.se.WeldSEBeanRegistrant, types: WeldContainer, Object, qualifiers: @Any @Default]
+2024-09-29 19:18:04,656 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > deployBeans > AfterBeanDiscovery (13 ms)
+2024-09-29 19:18:04,725 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > deployBeans (153 ms)
+2024-09-29 19:18:04,725 DEBUG org.jboss.weld.Bootstrap [main] WELD-000100: Weld initialized. Validating beans
+2024-09-29 19:18:04,725 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > validateBeans 
+2024-09-29 19:18:04,737 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > validateBeans > AfterDeploymentValidation 
+2024-09-29 19:18:04,738 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > validateBeans > AfterDeploymentValidation (1 ms)
+2024-09-29 19:18:04,739 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > validateBeans (13 ms)
+2024-09-29 19:18:04,739 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > endInitialization 
+2024-09-29 19:18:04,741 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > endInitialization (2 ms)
+2024-09-29 19:18:04,741 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap (497 ms)
+2024-09-29 19:18:04,746 INFO org.jboss.weld.Bootstrap [main] WELD-ENV-002003: Weld SE container dac23435-bbb4-438f-a8b9-a116977cbf85 initialized
+2024-09-29 19:18:04,780 INFO com.example.server.ChatServer [main] Server on
+2024-09-29 19:18:22,537 DEBUG org.jboss.logging [main] Logging Provider: org.jboss.logging.Slf4jLoggerProvider
+2024-09-29 19:18:22,547 INFO org.jboss.weld.Version [main] WELD-000900: 5.1.2 (Final)
+2024-09-29 19:18:22,672 DEBUG org.jboss.weld.Bootstrap [main] WELD-ENV-000030: Cannot load class using the ResourceLoader: org.jboss.jandex.Index
+2024-09-29 19:18:22,695 DEBUG org.jboss.weld.environment.deployment.discovery.DefaultBeanArchiveScanner [main] Resolved bean archive reference: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes for URL: file:/C:/Users/Berli/IdeaProjects/JavaFXApp/Server/target/classes/META-INF/beans.xml
+2024-09-29 19:18:22,698 DEBUG org.jboss.weld.Bootstrap [main] WELD-ENV-000032: Processing bean archive reference: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes
+2024-09-29 19:18:22,698 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle path: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes
+2024-09-29 19:18:22,699 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes
+2024-09-29 19:18:22,699 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes\com
+2024-09-29 19:18:22,700 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes\com\example
+2024-09-29 19:18:22,701 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes\com\example\server
+2024-09-29 19:18:22,702 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes\Files
+2024-09-29 19:18:22,703 DEBUG org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler [main] Handle directory: C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes\META-INF
+2024-09-29 19:18:22,703 DEBUG org.jboss.weld.Bootstrap [main] WELD-ENV-000039: Bean archive reference C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes handled by org.jboss.weld.environment.deployment.discovery.FileSystemBeanArchiveHandler@5158b42f
+2024-09-29 19:18:22,703 INFO org.jboss.weld.Bootstrap [main] WELD-ENV-000014: Falling back to Java Reflection for bean-discovery-mode="annotated" discovery. Add org.jboss:jandex to the classpath to speed-up startup.
+2024-09-29 19:18:22,727 DEBUG org.jboss.weld.Bootstrap [main] WELD-ENV-000024: Archive isolation enabled - creating multiple isolated bean archives if needed
+2024-09-29 19:18:22,785 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap 
+2024-09-29 19:18:22,786 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startContainer 
+2024-09-29 19:18:22,793 DEBUG org.jboss.weld.Configuration [main] WELD-001902: Following configuration was detected and applied: {org.jboss.weld.executor.threadPoolType=COMMON, org.jboss.weld.construction.relaxed=true, org.jboss.weld.bootstrap.allowOptimizedCleanup=true}
+2024-09-29 19:18:22,797 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startContainer > initServices 
+2024-09-29 19:18:22,820 DEBUG org.jboss.weld.Bootstrap [main] Using Weld modules: []
+2024-09-29 19:18:22,843 DEBUG org.jboss.weld.Bootstrap [main] Using instantiator: org.jboss.weld.bean.proxy.UnsafeProxyInstantiator
+2024-09-29 19:18:22,857 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startContainer > initServices (60 ms)
+2024-09-29 19:18:22,857 INFO org.jboss.weld.Bootstrap [main] WELD-000101: Transactional services not available. Injection of @Inject UserTransaction not available. Transactional observers will be invoked synchronously.
+2024-09-29 19:18:22,874 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startContainer > builtinContexts 
+2024-09-29 19:18:22,922 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%ApplicationContext
+2024-09-29 19:18:22,927 DEBUG org.jboss.weld.Reflection [main] WELD-000601: interface jakarta.inject.Singleton is missing @Target. Weld will use this annotation, however this may make the application unportable.
+2024-09-29 19:18:22,927 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%SingletonContext
+2024-09-29 19:18:22,930 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%BoundSessionContext
+2024-09-29 19:18:22,932 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%BoundConversationContext
+2024-09-29 19:18:22,933 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%BoundRequestContext
+2024-09-29 19:18:22,934 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%RequestContext
+2024-09-29 19:18:22,935 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%deployment%DependentContext
+2024-09-29 19:18:22,936 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startContainer > builtinContexts (62 ms)
+2024-09-29 19:18:22,937 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startContainer > readDeploymentStructure 
+2024-09-29 19:18:22,952 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [jakarta.enterprise.inject.spi.BeanManager] with qualifiers [@Default]
+2024-09-29 19:18:22,952 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [org.jboss.weld.manager.BeanManagerImpl] with qualifiers [@Default]
+2024-09-29 19:18:22,952 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startContainer > readDeploymentStructure (15 ms)
+2024-09-29 19:18:22,953 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startContainer (167 ms)
+2024-09-29 19:18:22,955 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startInitialization 
+2024-09-29 19:18:22,957 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [jakarta.enterprise.inject.spi.BeanManager] with qualifiers [@Default]
+2024-09-29 19:18:22,957 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [org.jboss.weld.manager.BeanManagerImpl] with qualifiers [@Default]
+2024-09-29 19:18:22,986 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Extension [class org.jboss.weld.bootstrap.WeldExtension] with qualifiers [@Default]; n/a
+2024-09-29 19:18:22,987 DEBUG org.jboss.weld.Bootstrap [main] WELD-000168: Extension bean deployed: Extension [class org.jboss.weld.bootstrap.WeldExtension] with qualifiers [@Default]; n/a
+2024-09-29 19:18:22,997 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Extension [class org.jboss.weld.environment.se.WeldSEBeanRegistrant] with qualifiers [@Default]; jar:file:/C:/Users/Berli/.m2/repository/org/jboss/weld/se/weld-se-core/5.1.2.Final/weld-se-core-5.1.2.Final.jar!/META-INF/services/jakarta.enterprise.inject.spi.Extension@1[org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2]
+2024-09-29 19:18:22,997 DEBUG org.jboss.weld.Bootstrap [main] WELD-000168: Extension bean deployed: Extension [class org.jboss.weld.environment.se.WeldSEBeanRegistrant] with qualifiers [@Default]; jar:file:/C:/Users/Berli/.m2/repository/org/jboss/weld/se/weld-se-core/5.1.2.Final/weld-se-core-5.1.2.Final.jar!/META-INF/services/jakarta.enterprise.inject.spi.Extension@1[org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2]
+2024-09-29 19:18:22,997 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [jakarta.enterprise.inject.spi.BeanManager] with qualifiers [@Default]
+2024-09-29 19:18:22,997 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Built-in Bean [org.jboss.weld.manager.BeanManagerImpl] with qualifiers [@Default]
+2024-09-29 19:18:22,997 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startInitialization > BeforeBeanDiscovery 
+2024-09-29 19:18:23,030 DEBUG org.jboss.weld.Bootstrap [main] WELD-000162: BeforeBeanDiscovery.addAnnotatedType() called by org.jboss.weld.bootstrap.WeldExtension@1046d517 for [BackedAnnotatedType] public @Vetoed @Interceptor @ActivateRequestContext @Priority class org.jboss.weld.contexts.activator.ActivateRequestContextInterceptor
+2024-09-29 19:18:23,034 DEBUG org.jboss.weld.Bootstrap [main] WELD-000162: BeforeBeanDiscovery.addAnnotatedType() called by org.jboss.weld.bootstrap.WeldExtension@1046d517 for [BackedAnnotatedType] public @Vetoed @Interceptor @ActivateRequestContext @Priority class org.jboss.weld.contexts.activator.CdiRequestContextActivatorInterceptor
+2024-09-29 19:18:23,040 DEBUG org.jboss.weld.Bootstrap [main] WELD-000162: BeforeBeanDiscovery.addAnnotatedType() called by org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2 for [BackedAnnotatedType] public @Vetoed @ApplicationScoped class org.jboss.weld.environment.se.beans.ParametersFactory
+2024-09-29 19:18:23,045 DEBUG org.jboss.weld.Bootstrap [main] WELD-000162: BeforeBeanDiscovery.addAnnotatedType() called by org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2 for [BackedAnnotatedType] public @Decorator class org.jboss.weld.environment.se.threading.RunnableDecorator
+2024-09-29 19:18:23,048 DEBUG org.jboss.weld.Bootstrap [main] WELD-000162: BeforeBeanDiscovery.addAnnotatedType() called by org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2 for [BackedAnnotatedType] public @Vetoed @Interceptor @ActivateThreadScope @Priority class org.jboss.weld.environment.se.contexts.activators.ActivateThreadScopeInterceptor
+2024-09-29 19:18:23,048 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startInitialization > BeforeBeanDiscovery (50 ms)
+2024-09-29 19:18:23,058 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > startInitialization > AfterTypeDiscovery 
+2024-09-29 19:18:23,059 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startInitialization > AfterTypeDiscovery (0 ms)
+2024-09-29 19:18:23,066 DEBUG org.jboss.weld.Bootstrap [main] WELD-000103: Enabled alternatives for Weld BeanManager for org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses [bean count=4]: (empty collection)
+2024-09-29 19:18:23,068 DEBUG org.jboss.weld.Bootstrap [main] WELD-000104: Enabled decorator types for Weld BeanManager for org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses [bean count=4]: (empty collection)
+2024-09-29 19:18:23,068 DEBUG org.jboss.weld.Bootstrap [main] WELD-000105: Enabled interceptor types for Weld BeanManager for org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses [bean count=4]: 
+  - class org.jboss.weld.contexts.activator.ActivateRequestContextInterceptor,
+  - class org.jboss.weld.contexts.activator.CdiRequestContextActivatorInterceptor,
+  - class org.jboss.weld.environment.se.contexts.activators.ActivateThreadScopeInterceptor
+2024-09-29 19:18:23,073 DEBUG org.jboss.weld.Bootstrap [main] WELD-000103: Enabled alternatives for Weld BeanManager for C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes [bean count=2]: (empty collection)
+2024-09-29 19:18:23,073 DEBUG org.jboss.weld.Bootstrap [main] WELD-000104: Enabled decorator types for Weld BeanManager for C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes [bean count=2]: (empty collection)
+2024-09-29 19:18:23,073 DEBUG org.jboss.weld.Bootstrap [main] WELD-000105: Enabled interceptor types for Weld BeanManager for C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes [bean count=2]: 
+  - class org.jboss.weld.contexts.activator.ActivateRequestContextInterceptor,
+  - class org.jboss.weld.contexts.activator.CdiRequestContextActivatorInterceptor,
+  - class org.jboss.weld.environment.se.contexts.activators.ActivateThreadScopeInterceptor
+2024-09-29 19:18:23,073 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > startInitialization (118 ms)
+2024-09-29 19:18:23,073 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > deployBeans 
+2024-09-29 19:18:23,127 DEBUG org.jboss.weld.Bootstrap [main] WELD-000108: Decorator: Decorator [class org.jboss.weld.environment.se.threading.RunnableDecorator] decorates [Runnable] with delegate type [Runnable] and delegate qualifiers [@Default]
+2024-09-29 19:18:23,127 DEBUG org.jboss.weld.Bootstrap [main] WELD-000107: Interceptor: Interceptor [class org.jboss.weld.contexts.activator.CdiRequestContextActivatorInterceptor intercepts @ActivateRequestContext]
+2024-09-29 19:18:23,128 DEBUG org.jboss.weld.Bootstrap [main] WELD-000107: Interceptor: Interceptor [class org.jboss.weld.environment.se.contexts.activators.ActivateThreadScopeInterceptor intercepts @ActivateThreadScope]
+2024-09-29 19:18:23,128 DEBUG org.jboss.weld.Bootstrap [main] WELD-000107: Interceptor: Interceptor [class org.jboss.weld.contexts.activator.ActivateRequestContextInterceptor intercepts @ActivateRequestContext]
+2024-09-29 19:18:23,133 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Managed Bean [class org.jboss.weld.environment.se.beans.ParametersFactory] with qualifiers [@Any @Default]
+2024-09-29 19:18:23,133 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%DependentContext
+2024-09-29 19:18:23,133 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Decorated]
+2024-09-29 19:18:23,134 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%BoundConversationContext
+2024-09-29 19:18:23,134 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Intercepted]
+2024-09-29 19:18:23,134 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Default]
+2024-09-29 19:18:23,134 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%BoundSessionContext
+2024-09-29 19:18:23,135 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%ApplicationContext
+2024-09-29 19:18:23,135 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Decorator] with qualifiers [@Default]
+2024-09-29 19:18:23,135 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%RequestContext
+2024-09-29 19:18:23,135 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.event.Event] with qualifiers [@Default]
+2024-09-29 19:18:23,135 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.InjectionPoint] with qualifiers [@Default]
+2024-09-29 19:18:23,135 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.InterceptionFactory] with qualifiers [@Default]
+2024-09-29 19:18:23,135 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%Conversation
+2024-09-29 19:18:23,135 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%RequestContextController
+2024-09-29 19:18:23,136 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Producer Method [String[]] with qualifiers [@Parameters @Any] declared as [[UnbackedAnnotatedMethod] @Produces @Parameters public org.jboss.weld.environment.se.beans.ParametersFactory.getArgsAsArray()]
+2024-09-29 19:18:23,136 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Producer Method [List<String>] with qualifiers [@Parameters @Any] declared as [[UnbackedAnnotatedMethod] @Produces @Parameters public org.jboss.weld.environment.se.beans.ParametersFactory.getArgs()]
+2024-09-29 19:18:23,136 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Interceptor] with qualifiers [@Default]
+2024-09-29 19:18:23,136 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.Instance] with qualifiers [@Default]
+2024-09-29 19:18:23,136 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.EventMetadata] with qualifiers [@Default]
+2024-09-29 19:18:23,136 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%BoundRequestContext
+2024-09-29 19:18:23,136 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%org.jboss.weld.environment.deployment.WeldDeployment.additionalClasses%SingletonContext
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%Conversation
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%DependentContext
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Default]
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%RequestContextController
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.EventMetadata] with qualifiers [@Default]
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.InterceptionFactory] with qualifiers [@Default]
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.InjectionPoint] with qualifiers [@Default]
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%SingletonContext
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Interceptor] with qualifiers [@Default]
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.event.Event] with qualifiers [@Default]
+2024-09-29 19:18:23,138 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.Instance] with qualifiers [@Default]
+2024-09-29 19:18:23,139 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Producer Method [ClientHandler] with qualifiers [@Any @Default] declared as [[BackedAnnotatedMethod] @Produces public static com.example.server.ClHFactory.factory()]
+2024-09-29 19:18:23,139 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Decorated]
+2024-09-29 19:18:23,139 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Decorator] with qualifiers [@Default]
+2024-09-29 19:18:23,139 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Managed Bean [class com.example.server.ClHFactory] with qualifiers [@Any @Default]
+2024-09-29 19:18:23,140 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Managed Bean [class com.example.server.ChatServer] with qualifiers [@Any @Default]
+2024-09-29 19:18:23,140 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%RequestContext
+2024-09-29 19:18:23,140 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%ApplicationContext
+2024-09-29 19:18:23,140 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%BoundConversationContext
+2024-09-29 19:18:23,140 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Implicit Bean [jakarta.enterprise.inject.spi.Bean] with qualifiers [@Intercepted]
+2024-09-29 19:18:23,140 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%BoundSessionContext
+2024-09-29 19:18:23,140 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: WELD%AbstractBuiltInBean%C:\Users\Berli\IdeaProjects\JavaFXApp\Server\target\classes%BoundRequestContext
+2024-09-29 19:18:23,140 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > deployBeans > AfterBeanDiscovery 
+2024-09-29 19:18:23,145 DEBUG org.jboss.weld.Bootstrap [main] WELD-000156: AfterBeanDiscovery.addContext() called by org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2 for org.jboss.weld.environment.se.contexts.ThreadContext@3549bca9
+2024-09-29 19:18:23,153 DEBUG org.jboss.weld.Bootstrap [main] WELD-000154: AfterBeanDiscovery.addBean() called by org.jboss.weld.environment.se.WeldSEBeanRegistrant@44d52de2 for Configurator Bean [class org.jboss.weld.environment.se.WeldSEBeanRegistrant, types: WeldContainer, Object, qualifiers: @Any @Default]
+2024-09-29 19:18:23,154 DEBUG org.jboss.weld.Bootstrap [main] WELD-000106: Bean: Configurator Bean [class org.jboss.weld.environment.se.WeldSEBeanRegistrant, types: WeldContainer, Object, qualifiers: @Any @Default]
+2024-09-29 19:18:23,154 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > deployBeans > AfterBeanDiscovery (14 ms)
+2024-09-29 19:18:23,213 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > deployBeans (139 ms)
+2024-09-29 19:18:23,213 DEBUG org.jboss.weld.Bootstrap [main] WELD-000100: Weld initialized. Validating beans
+2024-09-29 19:18:23,213 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > validateBeans 
+2024-09-29 19:18:23,224 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > validateBeans > AfterDeploymentValidation 
+2024-09-29 19:18:23,226 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > validateBeans > AfterDeploymentValidation (1 ms)
+2024-09-29 19:18:23,226 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > validateBeans (11 ms)
+2024-09-29 19:18:23,226 DEBUG org.jboss.weld.BootstrapTracker [main] START bootstrap > endInitialization 
+2024-09-29 19:18:23,227 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap > endInitialization (2 ms)
+2024-09-29 19:18:23,228 DEBUG org.jboss.weld.BootstrapTracker [main]   END bootstrap (442 ms)
+2024-09-29 19:18:23,233 INFO org.jboss.weld.Bootstrap [main] WELD-ENV-002003: Weld SE container 6b489a49-e1e3-4cd0-9231-308f67835700 initialized
+2024-09-29 19:18:23,263 INFO com.example.server.ChatServer [main] Server on
+2024-09-29 19:18:23,271 INFO com.example.server.ChatServer [main] Server off
+2024-09-29 19:18:23,280 INFO org.jboss.weld.Bootstrap [main] WELD-ENV-002001: Weld SE container 6b489a49-e1e3-4cd0-9231-308f67835700 shut down
+2024-09-29 19:18:50,248 INFO com.example.server.DatabaseHandling [Thread-5] Установлено соединение с базой данных
+2024-09-29 19:18:50,302 INFO com.example.server.SerializeMessages [Thread-5] Архив сообщений прочитан
+2024-09-29 19:18:50,381 INFO com.example.server.ClientHandler [Thread-5] Пользователь t подключился
+2024-09-29 19:19:17,477 INFO com.example.server.DatabaseHandling [Thread-7] Установлено соединение с базой данных
+2024-09-29 19:19:17,484 INFO com.example.server.SerializeMessages [Thread-7] Архив сообщений прочитан
+2024-09-29 19:19:17,551 INFO com.example.server.ClientHandler [Thread-7] Пользователь t2 подключился
+2024-09-29 19:19:57,639 INFO com.example.server.SerializeMessages [Thread-5] Сообщения записаны в архив
+2024-09-29 19:19:57,843 INFO com.example.server.ClientHandler [Thread-5] Пользователь t отключился
+2024-09-29 19:20:05,602 INFO com.example.server.ClientHandler [Thread-10] Пользователь null отключился
+2024-09-29 19:20:09,557 INFO com.example.server.SerializeMessages [Thread-7] Сообщения записаны в архив
+2024-09-29 19:20:09,775 INFO com.example.server.ClientHandler [Thread-7] Пользователь t2 отключился
