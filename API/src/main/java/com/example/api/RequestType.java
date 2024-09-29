@@ -9,13 +9,17 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 public enum RequestType implements IRequestType {
+
     RETENTION("/retention") {
         @Override
-        public RequestMessage createMessage(String message) {
-            return new RequestMessage(RETENTION, message);
+        public RequestMessage createMessage(String counterAndOldMessages) {
+            String[] split = counterAndOldMessages.split(" ", 2);
+            int counterObj = Integer.parseInt(split[0]);
+            String oldMessages = split[1];
+            return new RequestMessage(RETENTION, counterObj, oldMessages);
         }
     },
-//(/retention msg)
+//(/retention 12 msg)
 
     REGISTRATION("/registration") {
         @Override
@@ -63,8 +67,21 @@ public enum RequestType implements IRequestType {
         public RequestMessage createMessage(String message) {
             return new RequestMessage(SEND_TO_ALL, message);
         }
-    };
+    },
     // (/toAll msg)
+    START_TRANSFER_OBJECTS("/start") {
+        @Override
+        public RequestMessage createMessage(String emptyMsg) {
+            return new RequestMessage(START_TRANSFER_OBJECTS);
+        }
+    },
+    //(/finish)
+    FINISH_TRANSFER_OBJECTS("/finish") {
+        @Override
+        public RequestMessage createMessage(String emptyMsg) {
+            return new RequestMessage(START_TRANSFER_OBJECTS);
+        }
+    };
 
     @Getter
     private final String value;

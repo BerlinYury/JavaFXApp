@@ -79,6 +79,7 @@
             <artifactId>weld-se-core</artifactId>
             <version>5.1.2.Final</version>
         </dependency>
+
     </dependencies>
 
     <build>

@@ -11,9 +11,16 @@ public class ThreadManagerServer {
     private static ThreadManagerServer instance;
     @Getter
     private final ExecutorService executorService;
+    @Getter
+    private final ExecutorService executorServiceSingle;
 
     private ThreadManagerServer() {
         executorService = Executors.newFixedThreadPool(10, run -> {
+            Thread thread = new Thread(run);
+            thread.setDaemon(true); // Устанавливаем поток как демон
+            return thread;
+        });
+         executorServiceSingle = Executors.newSingleThreadExecutor(run -> {
             Thread thread = new Thread(run);
             thread.setDaemon(true); // Устанавливаем поток как демон
             return thread;

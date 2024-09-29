@@ -8,15 +8,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public enum ResponseType implements IResponseType{
+public enum ResponseType implements IResponseType {
+    USER_ON("/userOn") {
+        @Override
+        public ResponseMessage createMessage(String nick) {
+            return new ResponseMessage(USER_ON, nick);
+        }
+    },
+    //(/userOn nick)
+
+    USER_OFF("/userOff") {
+        @Override
+        public ResponseMessage createMessage(String nick) {
+            return new ResponseMessage(USER_OFF, nick);
+        }
+    },
+    //(/userOff nick)
 
     RECOVERY("/recovery") {
         @Override
-        public ResponseMessage createMessage(String recoveryMessages) {
-            return new ResponseMessage(recoveryMessages, RECOVERY);
+        public ResponseMessage createMessage(String counterAndRecoveryMessages) {
+            String[] split = counterAndRecoveryMessages.split(" ", 2);
+            int counterObj = Integer.parseInt(split[0]);
+            String oldMessages = split[1];
+            return new ResponseMessage(RECOVERY, counterObj, oldMessages);
         }
     },
-//(/recovery msg)
+//(/recovery 12 msg)
 
     RESPONSE("/response") {
         @Override
@@ -76,8 +94,21 @@ public enum ResponseType implements IResponseType{
             );
             return new ResponseMessage(AUTH_CHANGES, nicks);
         }
+    },
+    //(/start)
+    START_TRANSFER_OBJECTS("/start") {
+        @Override
+        public ResponseMessage createMessage(String emptyMsg) {
+            return new ResponseMessage(START_TRANSFER_OBJECTS);
+        }
+    },
+    //(/finish)
+    FINISH_TRANSFER_OBJECTS("/finish") {
+        @Override
+        public ResponseMessage createMessage(String emptyMsg) {
+            return new ResponseMessage(START_TRANSFER_OBJECTS);
+        }
     };
-    //(/changes [nick, nick, nick, nick])
 
     @Getter
     private final String value;
@@ -90,7 +121,8 @@ public enum ResponseType implements IResponseType{
         }
         VALUES = Collections.unmodifiableMap(stringResponseTypeHashMap);
     }
-    public static ResponseType getRequestType(String msgPrefix) {
+
+    public static ResponseType getResponseType(String msgPrefix) {
         return VALUES.get(msgPrefix);
     }
 }

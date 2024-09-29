@@ -1,7 +1,98 @@
-.right-aligned {
-    -fx-text-alignment: right;
+/* Общие настройки для темного фона */
+.root {
+    -fx-background-color: #17212B;
+    -fx-font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    -fx-text-fill: #dcdcdc;
 }
 
-.left-aligned {
-    -fx-text-alignment: left;
+.container {
+    -fx-background-color: #3c3f41;
+    -fx-border-color: #5c5f61;
+    -fx-border-width: 1;
+    -fx-border-style: solid;
+    -fx-border-radius: 5;
+    -fx-padding: 10;
+}
+
+.button {
+    -fx-background-color: linear-gradient(#1E2935, #0F171F);
+    -fx-text-fill: #dcdcdc;
+    -fx-border-color: #5c5f61;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 5 10;
+}
+
+.button:hover {
+    -fx-background-color: linear-gradient(#1E2935, #3b3b3b);
+}
+
+.text-field {
+    -fx-background-color: #3c3f41;
+    -fx-text-fill: #dcdcdc;
+    -fx-prompt-text-fill: #7a7a7a;
+    -fx-border-color: #5c5f61;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.label {
+    -fx-text-fill: #dcdcdc;
+}
+
+.scroll-pane {
+    -fx-background-color: #0E1621;
+    -fx-border-color: grey; /* Устанавливает цвет рамки */
+    -fx-border-width: 1; /* Устанавливает ширину рамки в 1 пиксель */
+    -fx-border-style: solid; /* Устанавливает стиль рамки */
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+    -fx-font-size: 13px; /* Устанавливаем размер шрифта */
+}
+
+.toggle-button-client {
+    -fx-background-color: linear-gradient(#1E2935, #0F171F);
+    -fx-text-fill: white; /* Белый цвет текста */
+    -fx-padding: 10; /* Внутренние отступы */
+    -fx-border-color: #5c5f61;
+    -fx-border-radius: 5; /* Радиус закругления углов */
+    -fx-background-radius: 5;
+}
+
+.toggle-button-client:hover {
+    -fx-background-color: linear-gradient(#1E2935, #3b3b3b); /*  при наведении */
+}
+
+.toggle-button-client:selected {
+    -fx-background-color: #3c3f41 /*  при выборе */
+}
+
+.scroll-pane .scroll-bar:horizontal .thumb,
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #3c3f41 /* Устанавливаем цвет ползунка в чёрный */
+}
+
+.scroll-pane .scroll-bar:horizontal .track,
+.scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: linear-gradient(#1E2935, #0F171F);
+}
+
+.scroll-pane .increment-button .increment-arrow,
+.scroll-pane .decrement-button .decrement-arrow {
+    -fx-background-color: #17212B; /* Устанавливаем цвет стрелочек */
+    -fx-border-color: #17212B; /* Устанавливаем цвет границы стрелочек */
+    -fx-border-width: 2px; /* Устанавливаем толщину границы, если нужно */
+}
+
+.scroll-pane .increment-button,
+.scroll-pane .decrement-button {
+    -fx-background-color: #17212B; /* Убираем фон кнопок, если необходимо */
+    -fx-border-color: #17212B; /* Устанавливаем цвет границы кнопок */
+    -fx-border-width: 2px; /* Устанавливаем толщину границы */
+}
+
+.vbox, .hbox {
+    -fx-spacing: 10;
 }
