@@ -1,248 +1,409 @@
 package com.example.client;
 
+
+import com.example.api.Group;
 import com.example.api.MessageBox;
-import com.example.api.MessageType;
-import com.example.api.RequestType;
-import com.example.api.ResponseMessage;
+import com.example.api.Person;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Ellipse;
 import javafx.scene.text.Font;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-
-
-import static java.util.Objects.*;
+import java.util.*;
 
 @Slf4j
 @NoArgsConstructor
-public class ControllerClient extends Controller implements IControllerClient {
+public class ControllerClient extends Controller {
     @FXML
-    private Label label;
+    private MenuBar menuBar;
     @FXML
-    private Button buttonSend;
+    private ListView<ToggleButton> listView;
     @FXML
-    private VBox clientsListBox;
+    private Label selectedUnitLabel;
     @FXML
-    private VBox clientsList;
+    private Label unitsListLabel;
     @FXML
-    private VBox messagesContainer;
+    private VBox messageContainerField;
     @FXML
-    private TextField fieldText;
+    private TextField textField;
     @FXML
     private ScrollPane scrollPane;
-    private String prefix;//Поле отвечает за выбор получателя сообщения, меняется при нажатии на кнопку с ником
-    private String toNick;
+    ToggleGroup toggleGroup = new ToggleGroup();
+    private boolean correspondenceSelected;
+    private String selectedCorrespondenceId;
+
     private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-    @Setter
-    private UIClient uiClient;
+    @FXML
+    public void initialize() {
+        // Привязываем ширину ScrollPane к ширине TextField
+        scrollPane.prefWidthProperty().bind(textField.widthProperty());
+
+        Menu menu = new Menu("...");
+        MenuItem menuItem1 = new MenuItem("new Chat");
+        MenuItem menuItem2 = new MenuItem("new Group");
+        MenuItem menuItem3 = new MenuItem("logout");
+
+        // Добавляем обработчики событий
+        menuItem1.setOnAction(event -> createChat());
+        menuItem2.setOnAction(event -> createGroup());
+        menuItem3.setOnAction(event -> logout());
+
+        menu.getItems().addAll(menuItem1, menuItem2, menuItem3);
+        menuBar.getMenus().add(menu);
+    }
+
+    private void createChat() {
+        uiClient.startCreateChatStage();
+        if (Objects.nonNull(controllerCreateChat)) {
+            chatClient.sendMessage(new MessageBox.Builder().buildCommandRequestMapAllPerson());
+        }
+    }
+
+    private void createGroup() {
+        uiClient.startCreateGroupStage();
+        if (Objects.nonNull(controllerCreateGroup)) {
+            chatClient.sendMessage(new MessageBox.Builder().buildCommandRequestMapAllGroup());
+        }
+    }
 
     @FXML
-    private void sendButtonClick() {
-        if (fieldText.getText().isEmpty()) {
-            fieldText.requestFocus();
+    private void clickButtonSend() {
+        if (textField.getText().isEmpty()) {
+            textField.requestFocus();
             return;
         }
-        if (isNull(prefix)) {
-            prefixIsEmptyError();
-            fieldText.requestFocus();
+        if (!correspondenceSelected) {
+            String title = ("Упс!");
+            String text = ("Получатель не выбран");
+            showInformationMessage(title, text);
+            textField.requestFocus();
             return;
         }
-        RequestType requestType = RequestType.getRequestType(prefix);
-        String msgWithoutPrefix = fieldText.getText().trim();
-        if (isNull(requestType)) {
-            String messageError = "requestType == null";
-            log.error(messageError);
-            throw new NullPointerException(messageError);
-        }
-        switch (requestType) {
-            case SEND_TO_ALL -> {
-                MessageBox messageBox = new MessageBox(MessageType.OUTGOING_MESSAGE_FOR_ALL,
-                        LocalDateTime.now(), String.format("->> %s\n\n", msgWithoutPrefix));
-                uiClient.getChatClient().getMessageSession().add(messageBox);
-                addMessage(messageBox);
-                uiClient.getChatClient().sendMessage(String.format("%s %s", prefix, msgWithoutPrefix));
-            }
-            case SEND_TO_ONE -> {
-                MessageBox messageBox = new MessageBox(MessageType.OUTGOING_MESSAGE_FOR_ONE_CUSTOMER,
-                        LocalDateTime.now(),
-                        String.format("-> %s %s\n\n", toNick, msgWithoutPrefix));
-                addMessage(messageBox);
-                uiClient.getChatClient().getMessageSession().add(messageBox);
-                uiClient.getChatClient().sendMessage(String.format("%s %s %s", prefix, toNick, msgWithoutPrefix));
-            }
-        }
-        fieldText.clear();
-        fieldText.requestFocus();
-    }
+        String textOnTextField = textField.getText().trim();
+        Correspondence correspondence = correspondenceMap.get(selectedCorrespondenceId);
 
-    @Override
-    public void addIncomingMessage(ResponseMessage message) {
         MessageBox messageBox;
-        switch (message.getType()) {
-            case USER_ON -> messageBox = new MessageBox(MessageType.INFORMATION_MESSAGE,
-                    LocalDateTime.now(), String.format("Пользователь %s присоединился\n\n", message.getNick()));
-
-            case USER_OFF -> messageBox = new MessageBox(MessageType.INFORMATION_MESSAGE,
-                    LocalDateTime.now(), String.format("Пользователь %s вышел из чата\n\n", message.getNick()));
-
-            case RESPONSE -> {
-                messageBox = new MessageBox(MessageType.INCOMING_MESSAGE,
-                        LocalDateTime.now(), String.format("%s: %s\n\n", message.getFromNick(), message.getMessage()));
-                uiClient.getChatClient().getMessageSession().add(messageBox);
+        switch (correspondence.getType()) {
+            case PERSON -> {
+                Person person = (Person) correspondence.getUnit();
+                messageBox = new MessageBox.Builder().buildMessageOutingPerson(
+                        UUID.randomUUID().toString(),
+                        LocalDateTime.now(),
+                        myPerson,
+                        person,
+                        textOnTextField);
             }
-            default -> messageBox = null;
+            case GROUP -> {
+                Group group = (Group) correspondence.getUnit();
+                messageBox = new MessageBox.Builder().buildMessageOutingGroup(
+                        UUID.randomUUID().toString(),
+                        LocalDateTime.now(),
+                        myPerson,
+                        group,
+                        myPerson,
+                        textOnTextField
+                );
+            }
+            default -> throw new IllegalArgumentException();
+
         }
-        addMessage(messageBox);
+        chatClient.addMessageToMap(messageBox);
+        chatClient.sendMessage(messageBox);
+        refreshMessageContainerField();
+        clearFields();
     }
 
-    @Override
-    public void appendOldMessages(List<MessageBox> oldMessageSession) {
-        String targetDate = "";
-        for (MessageBox messageBox : oldMessageSession) {
-            String nextDate = messageBox.getDateTime().format(dateFormat);
-            if (!targetDate.equals(nextDate)) {
-                targetDate = nextDate;
-                addMessage(new MessageBox(MessageType.DATE_OF_MESSAGE, messageBox.getDateTime(), targetDate));
-            }
-            addMessage(messageBox);
-        }
-        String welcomeWithDateMessage = String.format("Добро пожаловать в чат!\n            %s\n\n",
-                LocalDateTime.now().format(dateFormat));
-        addMessage(new MessageBox(MessageType.DATE_OF_MESSAGE, LocalDateTime.now(), welcomeWithDateMessage));
+    public void addIncomingMessage(MessageBox messageBox) {
+        Correspondence correspondence = chatClient.addMessageToMap(messageBox);
+        String correspondenceId = correspondence.getId();
+        if (Objects.isNull(selectedCorrespondenceId) || !selectedCorrespondenceId.equals(correspondenceId)) {
+            newUnreadMessage(correspondence);
+        } else refreshMessageContainerField();
     }
 
-    @Override
-    public void setLabel() {
-        label.setFont(new Font("Sriracha Regular", 15));
+    private void refreshMessageContainerField() {
+        Platform.runLater(() -> {
+            messageContainerField.getChildren().clear();
+            Correspondence correspondence = correspondenceMap.get(selectedCorrespondenceId);
+            List<MessageBox> messageBoxList = correspondence.getMessageBoxList();
+            StringBuilder newDate = new StringBuilder();
+            messageBoxList.forEach(messageBox -> {
+                if (doINeedToAddADate(messageBox, correspondence, newDate)) {
+                    addMessageToScreen(new MessageBox.Builder().buildMessageDate(
+                            messageBox.getDateTime().format(dateFormat)));
+                }
+                addMessageToScreen(messageBox);
+            });
+            correspondence.getTargetDate().setLength(0);
+        });
+        messageContainerField.heightProperty().addListener((observable, oldValue, newValue) -> scrollPane.setVvalue(1.0));
+    }
+
+    private boolean doINeedToAddADate(MessageBox messageBox, Correspondence correspondence, StringBuilder newDate) {
+        newDate.append(messageBox.getDateTime().format(dateFormat));
+        StringBuilder targetDate = correspondence.getTargetDate();
+        if (!correspondence.getTargetDate().toString().contentEquals(newDate)) {
+            targetDate.setLength(0);
+            targetDate.append(newDate);
+            newDate.setLength(0);
+            return true;
+        } else {
+            newDate.setLength(0);
+            return false;
+        }
+    }
+
+    private void addMessageToScreen(MessageBox messageBox) {
+        Label messageLabel = new Label(messageBox.getMessage());
+        messageLabel.setWrapText(true);
+        HBox messageContainer = new HBox();
+        messageContainer.getStyleClass().add("message-container");
+        messageContainer.setPrefWidth(scrollPane.getWidth());
+        messageContainer.setMaxWidth(scrollPane.getWidth());
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        switch (messageBox.getMessageTypeSecondLevel()) {
+            case INCOMING -> {
+                HBox innerContainer = new HBox(messageLabel, spacer);
+                innerContainer.getStyleClass().add("incoming");
+                innerContainer.setMaxWidth(0.6 * scrollPane.getWidth());
+                innerContainer.setPadding(new Insets(10)); // Добавляем отступы
+                messageContainer.getChildren().addAll(innerContainer, spacer);
+                messageContainer.setAlignment(Pos.CENTER_LEFT);
+            }
+            case OUTGOING -> {
+                HBox innerContainer = new HBox(spacer, messageLabel);
+                innerContainer.setAlignment(Pos.CENTER_RIGHT);
+                innerContainer.getStyleClass().add("outgoing");
+                innerContainer.setMaxWidth(0.6 * scrollPane.getWidth());
+                innerContainer.setPadding(new Insets(10)); // Добавляем отступы
+                messageContainer.getChildren().addAll(spacer, innerContainer);
+                messageContainer.setAlignment(Pos.CENTER_RIGHT);
+            }
+            case DATE -> {
+                messageContainer.setAlignment(Pos.CENTER);
+                messageContainer.getChildren().add(messageLabel);
+                messageContainer.getStyleClass().add("date");
+            }
+        }
+        messageContainerField.getChildren().add(messageContainer);
+    }
+
+    public void updatePersonStatus(List<Person> personOnlineStatusList) {
+        Platform.runLater(() -> {
+            correspondenceMap.values().forEach(correspondence -> {
+                if (correspondence.getType().equals(CorrespondenceType.PERSON)) {
+                    CustomButton customButton = correspondence.getCustomButton();
+                    Person person = (Person) correspondence.getUnit();
+                    boolean status = personOnlineStatusList.contains(person);
+                    changeStatus(person, customButton, status);
+                }
+            });
+        });
+    }
+
+    public void addButtonsForCorrespondence(Correspondence correspondence) {
+        try {
+            Platform.runLater(() -> {
+                CustomButton customButton = createCustomButton(correspondence);
+                correspondence.setCustomButton(customButton);
+                ToggleButton button = customButton.getButton();
+                button.setToggleGroup(toggleGroup);
+                listView.setPadding(new Insets(5, 0, 0, 0)); // Отступ только сверху
+                listView.getItems().add(button);
+
+                button.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                    if (newValue) {
+                        this.selectedCorrespondenceId = button.getId();
+                        correspondenceSelected = true;
+                        Correspondence selectedCorrespondence = correspondenceMap.get(selectedCorrespondenceId);
+                        refreshMessageContainerField();
+
+                        removeUnreadMessages(selectedCorrespondence);
+
+                        labelMenuSettings(selectedCorrespondence);
+                    } else {
+                        this.selectedCorrespondenceId = null;
+                        correspondenceSelected = false;
+                        messageContainerField.getChildren().clear();
+                        selectedUnitLabel.setText("Выберите, кому хотели бы написать");
+                    }
+                    textField.requestFocus();
+                });
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void labelMenuSettings(Correspondence correspondence) {
+        switch (correspondence.getType()) {
+            case PERSON -> selectedUnitLabel.setText(correspondence.getUnit().getName());
+            case GROUP -> {
+                ContextMenu contextMenu = new ContextMenu();
+                Group selectedGroup = (Group) correspondence.getUnit();
+                selectedUnitLabel.setText(String.format("%s (участников группы кроме вас: %d)", selectedGroup.getName(),
+                        selectedGroup.getPersonInGroupList().size() - 1));
+
+                HashMap<MenuItem, Person> menuItemPersonMap = new HashMap<>();
+
+                selectedGroup.getPersonInGroupList().forEach(person -> {
+                    if (!person.equals(myPerson)) {
+                        MenuItem item = new MenuItem(person.getName());
+                        menuItemPersonMap.put(item, person);
+
+                        item.setOnAction(event -> {
+                            Person selectedPerson = menuItemPersonMap.get(item);
+                            String selectedPersonId = selectedPerson.getId();
+                            if (correspondenceMap.containsKey(selectedPersonId)) {
+                                correspondenceMap.get(selectedPersonId).getCustomButton().getButton().fire();
+                            } else {
+                                questionOfCreatingNewChat(
+                                        new Correspondence(selectedPersonId, selectedPerson, CorrespondenceType.PERSON,new ArrayList<>())
+                                );
+                            }
+                        });
+                        contextMenu.getItems().add(item);
+                    }
+                });
+
+                selectedUnitLabel.setOnMouseClicked(event -> {
+                    if (!contextMenu.isShowing()) {
+                        double x =
+                                selectedUnitLabel.localToScreen(selectedUnitLabel.getBoundsInLocal()).getMinX();
+                        double y =
+                                selectedUnitLabel.localToScreen(selectedUnitLabel.getBoundsInLocal()).getMaxY();
+                        contextMenu.show(selectedUnitLabel, x, y);
+                    }
+                });
+            }
+            default -> throw new IllegalArgumentException();
+        }
+    }
+
+    private void questionOfCreatingNewChat(Correspondence correspondence) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setContentText("Хотите создать новый чат?");
+        ButtonType buttonYes = new ButtonType("Да");
+        ButtonType buttonNo = new ButtonType("Нет");
+        alert.getButtonTypes().setAll(buttonYes, buttonNo);
+
+        // Показываем диалог и ждем ответа
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == buttonYes) {
+            addNewUnitToMap(correspondence, true);
+        }
+    }
+
+
+    private CustomButton createCustomButton(Correspondence correspondence) {
+        String unitName = correspondence.getUnit().getName();
+        Label nameLabel = new Label(unitName);
+        ToggleButton button = new ToggleButton();
+        button.setId(correspondence.getId());
+        button.getStyleClass().add("toggle-button-client");
+        button.setMinWidth(170);
+        button.setMinHeight(45);
+
+        Circle indicatorStatus = new Circle(5); // Индикатор в виде круга
+        indicatorStatus.setFill(Color.web("#229ED9"));
+        indicatorStatus.setVisible(false);
+
+        Ellipse indicatorUnreadMessages = new Ellipse(21, 12); // Установите размеры эллипса
+        indicatorUnreadMessages.setFill(Color.GRAY);
+        indicatorUnreadMessages.setVisible(false);
+        Label unreadMessageLabel = new Label(); // Пример цифры
+
+        StackPane buttonContent = new StackPane(indicatorStatus, nameLabel, indicatorUnreadMessages,
+                unreadMessageLabel);
+        StackPane.setAlignment(nameLabel, Pos.CENTER);
+        StackPane.setAlignment(indicatorStatus, Pos.BOTTOM_LEFT);
+        StackPane.setAlignment(unreadMessageLabel, Pos.CENTER_RIGHT);
+        StackPane.setAlignment(indicatorUnreadMessages, Pos.CENTER_RIGHT);
+        button.setGraphic(buttonContent);
+
+        return new CustomButton(button, indicatorStatus, indicatorUnreadMessages, nameLabel,
+                unreadMessageLabel);
     }
 
     @FXML
     public void logout() {
         try {
             exit();
-            uiClient.getStartStage().close();
-            uiClient.start(uiClient.getStartStage());
+            startStage.close();
+            uiClient.start(startStage);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    @Override
     public void exit() {
-        try {
-            ChatClient chatClient = uiClient.getChatClient();
-            if (nonNull(chatClient.getNick())) {
-                chatClient.serializeMessages();
-            }
-            chatClient.sendMessage(RequestType.END.getValue());
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        chatClient.sendMessage(new MessageBox.Builder().buildCommandEnd());
+    }
+
+    public void showStartStage() {
+        startStage.setTitle(String.format("Мой Nick: %s", myPerson.getName()));
+        startStage.show();
+    }
+
+    public void setUnitsListLabel() {
+        unitsListLabel.setFont(new Font("Sriracha Regular", 15));
+        selectedUnitLabel.setFont(new Font("Sriracha Regular", 15));
     }
 
     @Override
-    public void addButtons(String[] nicks) {
-        Platform.runLater(() -> {
-            clientsList.getChildren().clear();
-            // Создаем группу для кнопок, чтобы была возможность выбирать только одну кнопку за раз
-            ToggleGroup toggleGroup = new ToggleGroup();
-            addButtonToAll(nicks.length, toggleGroup);
-            addButtonToOneCustomer(nicks, toggleGroup);
-            fieldText.requestFocus();
-        });
+    public void clearFields() {
+        textField.clear();
+        textField.requestFocus();
     }
 
-    private void addMessage(MessageBox messageBox) {
-        Platform.runLater(() -> {
-            Label messageLabel = new Label(messageBox.getMessage());
-            messageLabel.setWrapText(true);
-            HBox messageContainer = new HBox();
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-
-            switch (messageBox.getType()) {
-                case INCOMING_MESSAGE -> messageContainer.getChildren().addAll(messageLabel, spacer);
-                case INFORMATION_MESSAGE ->
-                        messageContainer.getChildren().addAll(messageLabel, spacer); // Входящие слева
-                case OUTGOING_MESSAGE_FOR_ALL, OUTGOING_MESSAGE_FOR_ONE_CUSTOMER ->
-                        messageContainer.getChildren().addAll(spacer, messageLabel); // Исходящие справа
-                case DATE_OF_MESSAGE -> {
-                    messageContainer.setAlignment(Pos.CENTER); // Центрирование
-                    messageContainer.getChildren().add(messageLabel);
-                }
-            }
-            messagesContainer.getChildren().add(messageContainer);
-        });
-        // Прокрутка вниз после добавления сообщения
-        messagesContainer.heightProperty().addListener((observable, oldValue, newValue) -> {
-            scrollPane.setVvalue(1.0);
-        });
-    }
-
-    private void prefixIsEmptyError() {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Упс!");
-        alert.setHeaderText(null);
-        alert.setContentText("Получатель не выбран");
-        alert.showAndWait();
-    }
-
-    private void addButtonToAll(int arrNicksLength, ToggleGroup toggleGroup) {
-        ToggleButton buttonAll = new ToggleButton("Отправить всем");
-        buttonAll.getStyleClass().add("toggle-button-client");
-        buttonAll.setMinWidth(170);
-        buttonAll.setOnAction(event -> {
-            if (arrNicksLength > 1) {
-                // Если в чате больше одного пользователя, то задаем префикс сообщения (появляется возможность
-                // отправить сообщение всем)
-                prefix = String.format("%s", RequestType.SEND_TO_ALL.getValue());
-                fieldText.requestFocus();
-            } else {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText(null);
-                alert.setContentText("В чате пока нет пользователей, кроме вас =(");
-                alert.showAndWait();
-                fieldText.requestFocus();
-                toggleGroup.selectToggle(null);
-            }
-        });
-        buttonAll.setToggleGroup(toggleGroup);
-        clientsList.getChildren().add(buttonAll);
-    }
-
-    private void addButtonToOneCustomer(String[] nicks, ToggleGroup toggleGroup) {
-        Arrays.sort(nicks);
-        for (String nick : nicks) {
-            if (nick.equals(uiClient.getChatClient().getNick())) {
-                continue;
-            }
-            ToggleButton button = new ToggleButton(nick);
-            button.getStyleClass().add("toggle-button-client");
-            button.setMinWidth(170);
-            // При нажатии на кнопку задаем префикс сообщения (появляется возможность отправить сообщение конкретному
-            // пользователю)
-            button.setOnAction(event -> {
-                prefix = String.format("%s", RequestType.SEND_TO_ONE.getValue());
-                this.toNick = button.getText();//Ник получателя сообщения берём с выбранной кнопки.
-                fieldText.requestFocus();
+    public void addNewUnitToMap(Correspondence correspondence, boolean needPressButton) {
+        String correspondenceId = correspondence.getId();
+        addButtonsForCorrespondence(correspondence);
+        correspondenceMap.put(correspondenceId, correspondence);
+        if (needPressButton) {
+            Platform.runLater(() -> {
+                correspondence.getCustomButton().getButton().fire();
+                listView.scrollTo(listView.getItems().size() - 1);
             });
-            button.setToggleGroup(toggleGroup);
-            clientsList.getChildren().add(button);
         }
+    }
+
+
+    public void newUnreadMessage(Correspondence correspondence) {
+        Platform.runLater(() -> {
+            CustomButton customButton = correspondence.getCustomButton();
+            String newMessages = Integer.toString(correspondence.getUnreadMessageCounter().incrementAndGet());
+            customButton.getIndicatorUnreadMessages().setVisible(true);
+            customButton.getUnreadMessageLabel().setText(String.format("%s new ", newMessages));
+        });
+    }
+
+    public void removeUnreadMessages(Correspondence correspondence) {
+        Platform.runLater(() -> {
+            CustomButton customButton = correspondence.getCustomButton();
+            correspondence.getUnreadMessageCounter().set(0);
+            customButton.getIndicatorUnreadMessages().setVisible(false);
+            customButton.getUnreadMessageLabel().setText("");
+        });
+    }
+
+    public void changeStatus(Person person, CustomButton customButton, boolean newStatus) {
+        Platform.runLater(() -> {
+            person.setStatus(newStatus);
+            customButton.getIndicatorStatus().setVisible(person.isStatus());
+        });
     }
 
 }

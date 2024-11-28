@@ -1,9 +1,8 @@
 package com.example.server;
 
+import com.example.api.Group;
 import com.example.api.MessageBox;
-import com.example.api.MessageType;
-import com.example.api.RequestMessage;
-import com.example.api.ResponseType;
+import com.example.api.Person;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
@@ -14,100 +13,103 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.time.LocalDateTime;
-import java.util.LinkedList;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @ApplicationScoped
 @NoArgsConstructor
-public class ChatServer implements IChatServer {
+public class ChatServer {
     @Inject
     private Instance<ClientHandler> clientHandlerInstance;
-    private final ConcurrentHashMap<String, ClientHandler> clients = new ConcurrentHashMap<>();
+    @Inject
+    private DatabaseHandling databaseHandling;
+    private final ConcurrentHashMap<Person, ClientHandler> clientHandlerMap = new ConcurrentHashMap<>();
     @Getter
     private ServerSocket serverSocket;
 
-    @Override
+
     public void run(String[] args) {
-        log.info("Server on");
         try {
             serverSocket = new ServerSocket(8129);
             isRunningServerUI(args);
             while (true) {
-                Socket textSocket = serverSocket.accept();
-                Socket objectSocket = serverSocket.accept();
+                Socket socket = serverSocket.accept();
                 ClientHandler clientHandler = clientHandlerInstance.get();
-                clientHandler.openConnection(textSocket,objectSocket);
+                clientHandler.openConnection(socket);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getClass().getName());
         } finally {
             ThreadManagerServer.getInstance().shutdownMyExecutorService();
-            log.info("Server off");
         }
     }
 
-    @Override
-    public boolean isNickBusy(String nick) {
-        return clients.containsKey(nick);
-    }
-
-    @Override
-    public void sendToAll(RequestMessage requestMessage, String fromNick) {
-        String message = String.format("%s %s %s", ResponseType.RESPONSE.getValue(), fromNick,
-                requestMessage.getMessage());
-
-        for (ClientHandler client : clients.values()) {
-            if (client.getNick().equals(fromNick)){
+    public void sendToGroup(MessageBox messageBox) {
+        Group group = messageBox.getGroup();
+        List<Person> personInGroupList = group.getPersonInGroupList();
+        for (Person personInGroup : personInGroupList) {
+            if (personInGroup.getId().equals(messageBox.getOwner().getId())) {
                 continue;
             }
-                client.sendMessage(message);
-        }
-    }
-
-    @Override
-    public void sendToAll(ResponseType responseType, String fromNick) {
-        String message = String.format("%s %s", responseType.getValue(), fromNick);
-
-        for (ClientHandler client : clients.values()) {
-            if (client.getNick().equals(fromNick)){
-                continue;
+            Person newOwner = personInGroup;
+            MessageBox reverseMessageBox = new MessageBox.Builder()
+                    .buildMessageIncomingGroup(
+                            UUID.randomUUID().toString(),
+                            messageBox.getDateTime(),
+                            newOwner,
+                            messageBox.getGroup(),
+                            messageBox.getSender(),
+                            messageBox.getMessage()
+                    );
+            if (clientHandlerMap.containsKey(personInGroup)) {
+                clientHandlerMap.get(personInGroup).sendMessage(reverseMessageBox);
             }
-                client.sendMessage(message);
         }
     }
 
-    @Override
-    public void sendToOneCustomer(RequestMessage requestMessage, String fromNick) {
-        String toNick = requestMessage.getNick();
-        String message = String.format("%s %s %s", ResponseType.RESPONSE.getValue(), fromNick,
-                requestMessage.getMessage());
+    public void sendToPerson(MessageBox messageBox) {
+        Person owner = messageBox.getOwner();
+        Person person = messageBox.getPerson();
 
-        if (clients.containsKey(toNick)) {
-            clients.get(toNick).sendMessage(message);
-        } else {
-          DatabaseHandling.addToDBOfflineMessage(new MessageBox(MessageType.OUTGOING_MESSAGE_FOR_ONE_CUSTOMER, LocalDateTime.now(),requestMessage.getMessage()),toNick);
+        Person newOwner = person;
+        Person newPerson = owner;
+
+        MessageBox reverseMessageBox = new MessageBox.Builder()
+                .buildMessageIncomingPerson(
+                        UUID.randomUUID().toString(),
+                        messageBox.getDateTime(),
+                        newOwner,
+                        newPerson,
+                        messageBox.getMessage()
+                );
+        if (clientHandlerMap.containsKey(person)) {
+            clientHandlerMap.get(person).sendMessage(reverseMessageBox);
         }
     }
 
-    @Override
-    public synchronized void subscribe(String nick, ClientHandler client) {
-        clients.put(nick, client);
+
+    public synchronized void subscribe(Person person, ClientHandler clientHandler) {
+        clientHandlerMap.put(person, clientHandler);
+        List<MessageBox> messageBoxList = databaseHandling.deserializeMessagesFromDB(person);
+        clientHandlerMap.get(person).transmissionTheHistoryOfCorrespondence(messageBoxList);
+        List<Group> groupWhereIAmAMember = databaseHandling.getGroupListWhereIAmAMember(person);
+        clientHandlerMap.get(person).sendGroupWhereIAmAMemberMap(groupWhereIAmAMember);
         sendClientsList();
-        sendToAll(ResponseType.USER_ON, nick);
     }
 
-    @Override
-    public synchronized void unsubscribe(String nick) {
-        clients.remove(nick);
+    public synchronized void unsubscribe(Person person) {
+        clientHandlerMap.remove(person);
         sendClientsList();
-        sendToAll(ResponseType.USER_OFF, nick);
     }
 
     private void sendClientsList() {
-        for (ClientHandler client : clients.values()) {
-            client.sendMessage(String.format("%s %s", ResponseType.AUTH_CHANGES.getValue(), clients.keySet()));
+      List<Person> activePersonList = new ArrayList<>(clientHandlerMap.keySet());
+        for (ClientHandler clientHandler : clientHandlerMap.values()) {
+            clientHandler.sendMessage(
+                    new MessageBox.Builder()
+                            .buildCommandChangeStatusPerson(activePersonList));
         }
     }
 
@@ -120,10 +122,10 @@ public class ChatServer implements IChatServer {
 
     public void serverClose() {
         try {
+            databaseHandling.getConnection().close();
             serverSocket.close();
-        } catch (IOException e) {
+        } catch (IOException | SQLException e) {
             throw new RuntimeException(e);
         }
     }
-
 }

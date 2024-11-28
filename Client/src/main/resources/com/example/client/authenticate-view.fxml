@@ -7,15 +7,15 @@
 <VBox VBox.vgrow="ALWAYS" alignment="CENTER" spacing="5.0" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.example.client.ControllerAuthenticate">
         <HBox alignment="CENTER">
-            <Label fx:id="labelLogin" text="login:        "/>
-            <TextField fx:id="login" onAction="#nextField" minWidth="200.0"/>
+            <Label text="email:        "/>
+            <TextField fx:id="emailField" onAction="#nextField" minWidth="200.0"/>
         </HBox>
         <HBox alignment="CENTER">
-            <Label fx:id="labelPassword"  text="password: "/>
-            <PasswordField fx:id="password" onAction="#nextField1" minWidth="200.0"/>
+            <Label text="password: "/>
+            <PasswordField fx:id="passwordField" onAction="#nextField1" minWidth="200.0"/>
         </HBox>
-    <Button fx:id="buttonSendAuth" onAction="#sendButtonEnter" text="Enter" minWidth="90.0" />
-    <Button fx:id="buttonSendRegistration" onAction="#clickButtonRegistration" text="Registration" minWidth="90.0" />
+    <Button onAction="#clickButtonEnter" text="Enter" minWidth="90.0" />
+    <Button onAction="#clickButtonRegistration" text="Registration" minWidth="90.0" />
     </VBox>
 
 

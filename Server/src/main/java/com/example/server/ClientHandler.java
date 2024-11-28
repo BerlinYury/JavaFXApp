@@ -1,207 +1,175 @@
 package com.example.server;
 
+import com.example.api.Group;
 import com.example.api.MessageBox;
-import com.example.api.RequestMessage;
-import com.example.api.RequestType;
-import com.example.api.ResponseType;
+import com.example.api.MessageTypeThirdLevel;
+import com.example.api.Person;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.net.SocketException;
 import java.util.List;
-
+import java.util.Objects;
 
 import static java.util.Objects.*;
 
 @Slf4j
-public class ClientHandler implements IClientHandler {
-    private Socket textSocket;
-    private Socket objectSocket;
-
+public class ClientHandler {
+    private Socket socket;
     private final ChatServer server;
-    private DataInputStream in;
-    private DataOutputStream out;
-    private ObjectInputStream inObj;
-    private ObjectOutputStream outObj;
-    private static final Object mon = new Object();
-    private String nick;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
+    private Person myPerson;
+    private final DatabaseHandling databaseHandling;
 
 
-    public ClientHandler(ChatServer server) {
+    public ClientHandler(ChatServer server,DatabaseHandling databaseHandling) {
         this.server = server;
+        this.databaseHandling=databaseHandling;
     }
 
-    @Override
-    public void openConnection(Socket textSocket, Socket objectSocket) {
+    public void openConnection(Socket socket) {
         ThreadManagerServer.getInstance().getExecutorService().execute(() -> {
             try {
-                this.textSocket = textSocket;
-                this.objectSocket = objectSocket;
-                in = new DataInputStream(textSocket.getInputStream());
-                out = new DataOutputStream(textSocket.getOutputStream());
-                outObj = new ObjectOutputStream(objectSocket.getOutputStream());
-                inObj = new ObjectInputStream(objectSocket.getInputStream());
+                this.socket = socket;
+                out = new ObjectOutputStream(socket.getOutputStream());
+                in = new ObjectInputStream(socket.getInputStream());
 
-                if (isClientAuth()) {
-                    readMessages();
-                }
+                readMessages();
+
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                try {
-                    closeConnection();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
         });
     }
 
-    @Override
-    public void sendMessage(String message) {
+    public void sendMessage(MessageBox messageBox) {
         try {
-            out.writeUTF(message);
+            out.writeObject(messageBox);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public String getNick() {
-        return nick;
-    }
-
-    private boolean isClientAuth() {
-        while (true) {
-            try {
-                RequestMessage message = RequestMessage.createMessage(in.readUTF());
-                if (isNull(message)) {
-                    log.error(String.format("RequestMessage for %s == null", this.nick));
-                    continue;
-                }
-                switch (message.getType()) {
-                    case END -> {
-                        return false;
-                    }
-                    case REGISTRATION -> {
-                        if (!DatabaseHandling.isClientExistsInDatabase(message.getLogin(), message.getPassword())) {
-                            DatabaseHandling.registrationUsers(message.getLogin(), message.getPassword());
-                            sendMessage(ResponseType.REG_OK.getValue());
-                            log.info(String.format("Пользователь %s успешно зарегистрировался", this.nick));
-                        } else {
-                            sendMessage(ResponseType.REG_BUSY.getValue());
-                            log.info(String.format("Пользователь с такими регистрационными данными ник: %s уже " +
-                                    "существует", this.nick));
-                        }
-                    }
-                    case AUTH -> {
-                        String nick = DatabaseHandling.getNickByLoginAndPassword(message.getLogin(),
-                                message.getPassword());
-                        if (isNull(nick)) {
-                            sendMessage(ResponseType.AUTH_FAILED.getValue());
-                            continue;
-                        }
-                        if (server.isNickBusy(nick)) {
-                            sendMessage(ResponseType.AUTH_NICK_BUSY.getValue());
-                            continue;
-                        }
-                        this.nick = nick;
-                        sendMessage(String.format("%s %s", ResponseType.AUTH_OK.getValue(), nick));
-                        server.subscribe(nick, this);
-
-                        String text = SerializeMessages.readMessagesFromFile(nick);
-
-                        ArrayList<MessageBox> oldMessages = DatabaseHandling.deserializeMessagesFromDB(nick);
-                        log.info(String.format("Пользователь %s подключился", this.nick));
-                        transmissionTheHistoryOfCorrespondence(oldMessages, text);
-                        return true;
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
         }
     }
 
     private void readMessages() {
         try {
             while (true) {
-                RequestMessage message = RequestMessage.createMessage(in.readUTF());
-                if (message == null) {
-                    log.error(String.format("RequestMessage for %s == null", this.nick));
-                    continue;
-                }
-                switch (message.getType()) {
-                    case END -> {
-                        return;
-                    }
-                    case SEND_TO_ALL -> server.sendToAll(message, nick);
-                    case SEND_TO_ONE -> server.sendToOneCustomer(message, nick);
-                    case RETENTION -> {
-                        SerializeMessages.writeMessagesToFile(message, nick);
-                        //TODO добавить подсчёт объектов через RETENTION
-                        gettingTheHistoryOfCorrespondence(message);
-
-                    }
-                    case START_TRANSFER_OBJECTS, FINISH_TRANSFER_OBJECTS -> {
-                        synchronized (mon) {
-                            mon.notify();
-                        }
-                    }
+                MessageBox messageBox = (MessageBox) in.readObject();
+                switch (messageBox.getMessageTypeFirstLevel()) {
+                    case COMMAND -> workWithCommand(messageBox);
+                    case MESSAGE -> workWithMessage(messageBox);
+                    default -> showIllegalStateException(messageBox);
                 }
             }
-        } catch (IOException e) {
+        } catch (SocketException e) {
+            System.out.println(e.getMessage());
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
-    private void transmissionTheHistoryOfCorrespondence(ArrayList<MessageBox> oldMessages, String text) {
-        ThreadManagerServer.getInstance().getExecutorServiceSingle().execute(()-> {
-            sendMessage(String.format("%s %d %s", ResponseType.RECOVERY.getValue(), oldMessages.size(),
-                    text));
+    private void workWithMessage(MessageBox messageBox) {
+        switch (messageBox.getMessageTypeSecondLevel()) {
+            case OUTGOING -> {
+                databaseHandling.addMessageToDB(messageBox);
+                switch (messageBox.getMessageTypeFourLevel()) {
+                    case PERSON -> server.sendToPerson(messageBox);
+                    case GROUP -> server.sendToGroup(messageBox);
+                    default -> showIllegalStateException(messageBox);
+                }
+            }
+            default -> showIllegalStateException(messageBox);
+        }
+    }
 
-            synchronized (mon) {
+    private void workWithCommand(MessageBox messageBox) {
+        switch (messageBox.getMessageTypeSecondLevel()) {
+            case REQUEST -> workWithRequest(messageBox);
+            case END -> {
                 try {
-                    mon.wait();
-                    for (MessageBox messageBox : oldMessages) {
-                        outObj.writeObject(messageBox);
-                    }
-                    mon.wait();
-                } catch (IOException | InterruptedException e) {
+                    closeConnection();
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
-        });
+            default -> showIllegalStateException(messageBox);
+        }
     }
 
-    private void gettingTheHistoryOfCorrespondence(RequestMessage message) {
-        List<MessageBox> oldMessageSession = new ArrayList<>();
-        ThreadManagerServer.getInstance().getExecutorService().execute(() -> {
-            try {
-                sendMessage(ResponseType.START_TRANSFER_OBJECTS.getValue());
-                for (int i = 0; i < message.getCounterObj(); i++) {
-                    Object messageBox = inObj.readObject();
-                    if (messageBox instanceof MessageBox) {
-                        oldMessageSession.add((MessageBox) messageBox);
-                    } else {
-                        log.error("Объект не соответствует типу MessageBox");
-                        throw new IllegalArgumentException("Объект не соответствует типу " +
-                                "MessageBox");
-                    }
-                }
-                DatabaseHandling.serializeMessagesToDB(oldMessageSession, nick);
-                sendMessage(ResponseType.FINISH_TRANSFER_OBJECTS.getValue());
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
+    private void workWithRequest(MessageBox messageBox) {
+        switch (messageBox.getMessageTypeThirdLevel()) {
+            case REG -> workWithReg(messageBox);
+            case AUTH -> workWithAuthPerson(messageBox);
+            case LIST_ALL_PERSON -> workWithMapAll(messageBox);
+        }
+    }
+
+    private void workWithMapAll(MessageBox messageBox) {
+        List<Person> allPersonList = databaseHandling.getAllPersonList();
+        switch (messageBox.getMessageTypeFourLevel()) {
+            case PERSON ->
+                    sendMessage(new MessageBox.Builder().buildCommandChangeMapAllPersonForPerson(allPersonList));
+            case GROUP ->
+                    sendMessage(new MessageBox.Builder().buildCommandChangeMapAllPersonForGroup(allPersonList));
+        }
+    }
+
+    private void workWithReg(MessageBox messageBox) {
+        switch (messageBox.getMessageTypeFourLevel()) {
+            case PERSON -> workWithRegPerson(messageBox);
+            case GROUP -> workWithRegGroup(messageBox);
+        }
+    }
+
+    private void workWithRegPerson(MessageBox messageBox) {
+        DBResponse dbResponse = databaseHandling.isPersonExistsInDatabase(
+                messageBox.getPerson(),messageBox.getEmail()
+        );
+        if (dbResponse.isFlag()) {
+            sendMessage(new MessageBox.Builder().buildCommandFailedRegPerson(dbResponse.getErrorOnFieldList()));
+            return;
+        }
+        databaseHandling.registrationPerson(messageBox.getPerson(),messageBox.getEmail(),messageBox.getPassword());
+        sendMessage(new MessageBox.Builder().buildCommandAcceptRegPerson());
+    }
+
+    private void workWithRegGroup(MessageBox messageBox) {
+        if (databaseHandling.isGroupExistsInDatabase(messageBox.getGroup())) {
+            sendMessage(new MessageBox.Builder().buildCommandFailedRegGroup());
+            return;
+        }
+        databaseHandling.registrationGroup(messageBox.getGroup());
+        sendMessage(new MessageBox.Builder().buildCommandAcceptRegGroup(messageBox.getGroup()));
+    }
+
+    private void workWithAuthPerson(MessageBox messageBox) {
+        Person person = databaseHandling.authenticatePerson(
+                messageBox.getEmail(), messageBox.getPassword()
+        );
+        if (Objects.isNull(person)) {
+            sendMessage(new MessageBox.Builder().buildCommandFailedAuthPerson());
+            return;
+        }
+        sendMessage(new MessageBox.Builder().buildCommandAcceptAuthPerson(person));
+        this.myPerson = person;
+        server.subscribe(myPerson, this);
+    }
+
+    public void transmissionTheHistoryOfCorrespondence(List<MessageBox> messageBoxesList) {
+        try {
+            sendMessage(new MessageBox.Builder().buildCommandRecoveryCorrespondenceHistory(messageBoxesList.size()));
+            for (MessageBox messageBox : messageBoxesList) {
+                out.writeObject(messageBox);
             }
-        });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void closeConnection() throws IOException {
-        if (nonNull(nick)) {
-            server.unsubscribe(nick);
+        if (nonNull(myPerson)) {
+            server.unsubscribe(myPerson);
         }
         if (nonNull(in)) {
             in.close();
@@ -209,19 +177,20 @@ public class ClientHandler implements IClientHandler {
         if (nonNull(out)) {
             out.close();
         }
-        if (nonNull(inObj)) {
-            inObj.close();
+        if (nonNull(socket)) {
+            socket.close();
         }
-        if (nonNull(outObj)) {
-            outObj.close();
-        }
-        if (nonNull(objectSocket)) {
-            objectSocket.close();
-        }
-        if (nonNull(textSocket)) {
-            textSocket.close();
-        }
-        log.info(String.format("Пользователь %s отключился", this.nick));
     }
 
+    private static void showIllegalStateException(MessageBox messageBox) {
+        throw new IllegalStateException(String.format("Unexpected value: %s, %s, %s",
+                messageBox.getMessageTypeFirstLevel(),
+                messageBox.getMessageTypeSecondLevel(),
+                messageBox.getMessageTypeThirdLevel()
+        ));
+    }
+
+    public void sendGroupWhereIAmAMemberMap(List<Group> groupWhereIAmAMember) {
+        sendMessage(new MessageBox.Builder().buildCommandChangeGroupIMemberGroup(groupWhereIAmAMember));
+    }
 }

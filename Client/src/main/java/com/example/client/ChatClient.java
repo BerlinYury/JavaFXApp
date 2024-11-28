@@ -1,8 +1,6 @@
 package com.example.client;
 
-import com.example.api.MessageBox;
-import com.example.api.RequestType;
-import com.example.api.ResponseMessage;
+import com.example.api.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,53 +8,50 @@ import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.*;
 
 @Slf4j
-public class ChatClient implements IChatClient {
-
-    private Socket textSocket;
-    private Socket objectSocket;
-    private DataInputStream in;
-    private DataOutputStream out;
-    private ObjectInputStream inObj;
-    private ObjectOutputStream outObj;
-    @Getter
-    private String nick;
+public class ChatClient {
+    private Socket socket;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
     private final ControllerClient controllerClient;
     private final ControllerAuthenticate controllerAuthenticate;
-    private final ControllerRegistration controllerRegistration;
+    private final ControllerRegistrationPerson controllerRegistrationPerson;
     @Getter
-    private final List<MessageBox> messageSession = new ArrayList<>();
-    private static final Object mon = new Object();
+    private final ConcurrentHashMap<String, Correspondence> correspondenceMap;
+    private ControllerCreateChat controllerCreateChat;
+    private ControllerCreateGroup controllerCreateGroup;
 
     public ChatClient(ControllerClient controllerClient,
                       ControllerAuthenticate controllerAuthenticate,
-                      ControllerRegistration controllerRegistration) {
+                      ControllerRegistrationPerson controllerRegistrationPerson
+    ) {
         this.controllerClient = controllerClient;
         this.controllerAuthenticate = controllerAuthenticate;
-        this.controllerRegistration = controllerRegistration;
+        this.controllerRegistrationPerson = controllerRegistrationPerson;
+        this.correspondenceMap = new ConcurrentHashMap<>();
     }
 
-    @Override
+    public void setControllerCreateChat(ControllerCreateChat controllerCreateChat) {
+        this.controllerCreateChat = controllerCreateChat;
+    }
+
+    public void setControllerCreateGroup(ControllerCreateGroup controllerCreateGroup) {
+        this.controllerCreateGroup = controllerCreateGroup;
+    }
+
     public void openConnection() {
         ThreadManagerClient.getInstance().getExecutorService().execute(() -> {
             try {
                 String LOCALHOST = "localhost";
                 int PORT = 8129;
-
-                textSocket = new Socket(LOCALHOST, PORT);
-                objectSocket = new Socket(LOCALHOST, PORT);
-
-                in = new DataInputStream(textSocket.getInputStream());
-                out = new DataOutputStream(textSocket.getOutputStream());
-                outObj = new ObjectOutputStream(objectSocket.getOutputStream());
-                inObj = new ObjectInputStream(objectSocket.getInputStream());
-
+                socket = new Socket(LOCALHOST, PORT);
+                out = new ObjectOutputStream(socket.getOutputStream());
+                in = new ObjectInputStream(socket.getInputStream());
                 readMessage();
-
             } catch (ConnectException cE) {
                 System.out.println("Cервер не запущен");
                 System.exit(1);
@@ -74,87 +69,163 @@ public class ChatClient implements IChatClient {
 
     private void readMessage() {
         try {
-            log.info(String.format("Клиент %s открыт", this.nick));
             while (true) {
-                ResponseMessage message = ResponseMessage.createMessage(in.readUTF());
-                if (isNull(message)) {
-                    log.error(String.format("ResponseMessage for %s == null", this.nick));
-                    continue;
-                }
-                switch (message.getType()) {
-                    case RECOVERY -> deserializeMessages(message);
-                    case REG_OK -> {
-                        controllerRegistration.onSuccess();
-                        log.info(String.format("Клиент %s зарегистрирован", this.nick));
-                    }
-                    case REG_BUSY -> controllerRegistration.onBusy();
-                    case AUTH_OK -> {
-                        this.nick = message.getNick();
-                        controllerAuthenticate.onSuccess();
-                        log.info(String.format("Клиент %s авторизован", this.nick));
-                    }
-                    case AUTH_FAILED -> controllerAuthenticate.onError();
-                    case AUTH_NICK_BUSY -> controllerAuthenticate.onBusy();
-                    case AUTH_CHANGES -> controllerClient.addButtons(message.getClientsChangeList());
-                    case RESPONSE, USER_ON, USER_OFF -> controllerClient.addIncomingMessage(message);
-                    case START_TRANSFER_OBJECTS, FINISH_TRANSFER_OBJECTS -> {
-                        synchronized (mon) {
-                            mon.notify();
-                        }
-                    }
-                    default -> throw new IllegalStateException("Unexpected value: " + message.getType());
+                MessageBox messageBox = (MessageBox) in.readObject();
+                switch (messageBox.getMessageTypeFirstLevel()) {
+                    case COMMAND -> workWithCommand(messageBox);
+                    case MESSAGE -> workWithMessage(messageBox);
+                    default -> showIllegalStateException(messageBox);
                 }
             }
-        } catch (IOException e) {
+        } catch (EOFException e) {
+            System.out.println(e.getClass().getName());
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
-    @Override
-    public void sendMessage(String msg) {
+    private void workWithMessage(MessageBox messageBox) {
+        switch (messageBox.getMessageTypeSecondLevel()) {
+            case INCOMING -> controllerClient.addIncomingMessage(messageBox);
+            default -> showIllegalStateException(messageBox);
+        }
+    }
+
+    private void workWithCommand(MessageBox messageBox) {
+        switch (messageBox.getMessageTypeSecondLevel()) {
+            case ACCEPT -> workWithAccept(messageBox);
+            case FAILED -> workWithFailed(messageBox);
+            case CHANGE -> workWithChange(messageBox);
+            case RECOVERY -> workWithRecovery(messageBox);
+            default -> showIllegalStateException(messageBox);
+        }
+    }
+
+    private void workWithAccept(MessageBox messageBox) {
+        switch (messageBox.getMessageTypeThirdLevel()) {
+            case REG -> {
+                switch (messageBox.getMessageTypeFourLevel()) {
+                    case PERSON -> controllerRegistrationPerson.onAcceptRegistrationPerson();
+                    case GROUP -> controllerCreateGroup.onAcceptRegistrationGroup(messageBox);
+                    default -> showIllegalStateException(messageBox);
+                }
+            }
+            case AUTH -> {
+                switch (messageBox.getMessageTypeFourLevel()) {
+                    case PERSON -> {
+                        Controller.myPerson = messageBox.getOwner();
+                        controllerAuthenticate.onAcceptAuthenticatePerson();
+                    }
+                    default -> showIllegalStateException(messageBox);
+                }
+            }
+            default -> showIllegalStateException(messageBox);
+        }
+    }
+
+    private void workWithFailed(MessageBox messageBox) {
+        switch (messageBox.getMessageTypeThirdLevel()) {
+            case REG -> {
+                switch (messageBox.getMessageTypeFourLevel()) {
+                    case PERSON ->
+                            controllerRegistrationPerson.onFailedRegistrationPerson(messageBox.getErrorOnFieldList());
+                    case GROUP -> controllerCreateGroup.onFailedRegistrationGroup();
+                    default -> showIllegalStateException(messageBox);
+                }
+            }
+            case AUTH -> {
+                switch (messageBox.getMessageTypeFourLevel()) {
+                    case PERSON -> controllerAuthenticate.onFailedAuthenticatePerson();
+                    default -> showIllegalStateException(messageBox);
+                }
+            }
+            default -> showIllegalStateException(messageBox);
+        }
+
+    }
+
+    private void workWithRecovery(MessageBox messageBox) {
+        switch (messageBox.getMessageTypeThirdLevel()) {
+            case CORRESPONDENCE_HISTORY -> deserializeMessages(messageBox.getCounterUnit());
+            default -> showIllegalStateException(messageBox);
+        }
+    }
+
+
+    private void workWithChange(MessageBox messageBox) {
+        switch (messageBox.getMessageTypeThirdLevel()) {
+            case STATUS -> controllerClient.updatePersonStatus(messageBox.getActivePersonList());
+            case LIST_ALL_PERSON -> {
+                switch (messageBox.getMessageTypeFourLevel()) {
+                    case PERSON -> controllerCreateChat.addAllPersonList(messageBox.getAllPersonList());
+                    case GROUP -> controllerCreateGroup.addAllPersonList(messageBox.getAllPersonList());
+                }
+            }
+            case LIST_GROUP_I_MEMBER ->
+                messageBox.getGroupWhereIAmAMemberList().forEach(group->{
+                    if (!correspondenceMap.containsKey(group.getId())){
+                        controllerClient.addNewUnitToMap(
+                                new Correspondence(group.getId(),group,CorrespondenceType.GROUP,new ArrayList<>()),
+                                false
+                        );
+                    }
+                });
+            default -> showIllegalStateException(messageBox);
+        }
+    }
+
+    public void sendMessage(MessageBox messageBox) {
         try {
-            out.writeUTF(msg);
+            out.writeObject(messageBox);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void deserializeMessages(ResponseMessage message) {
-        List<MessageBox> oldMessageSession = new ArrayList<>();
-        ThreadManagerClient.getInstance().getExecutorService().execute(() -> {
-            try {
-                sendMessage(RequestType.START_TRANSFER_OBJECTS.getValue());
-                for (int i = 0; i < message.getCounterObj(); i++) {
-                    Object messageBox = inObj.readObject();
-                    if (messageBox instanceof MessageBox) {
-                        oldMessageSession.add((MessageBox) messageBox);
-                    } else {
-                        log.error("Объект не соответствует типу MessageBox");
-                        throw new IllegalArgumentException("Объект не соответствует типу " +
-                                "MessageBox");
-                    }
-                }
-                sendMessage(RequestType.FINISH_TRANSFER_OBJECTS.getValue());
-                controllerClient.appendOldMessages(oldMessageSession);
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
+    public void deserializeMessages(int counterObj) {
+        try {
+            for (int i = 0; i < counterObj; i++) {
+                MessageBox messageBox = (MessageBox) in.readObject();
+                addMessageToMap(messageBox);
             }
-        });
-    }
-
-    public void serializeMessages() throws IOException, InterruptedException {
-        sendMessage(String.format("%s %d %s", RequestType.RETENTION.getValue(), messageSession.size(),
-                "text"));
-        synchronized (mon) {
-            mon.wait();
-            for (MessageBox messageBox : messageSession) {
-                outObj.writeObject(messageBox);
-            }
-            messageSession.clear();
-            mon.wait();
+        } catch (IOException | ClassNotFoundException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
+    public Correspondence addMessageToMap(MessageBox messageBox) {
+        Correspondence correspondence;
+        switch (messageBox.getMessageTypeFourLevel()) {
+            case PERSON -> {
+                Person person = messageBox.getPerson();
+                String personId = person.getId();
+                if (correspondenceMap.containsKey(personId)){
+                    correspondence = correspondenceMap.get(personId);
+                }else {
+                     correspondence = new Correspondence(personId, person,
+                            CorrespondenceType.PERSON,new ArrayList<>());
+                    correspondenceMap.put(personId, correspondence);
+                    controllerClient.addButtonsForCorrespondence(correspondence);
+                }
+                correspondence.getMessageBoxList().add(messageBox);
+            }
+            case GROUP -> {
+                Group group = messageBox.getGroup();
+                String groupId = group.getId();
+                if (correspondenceMap.containsKey(groupId)){
+                    correspondence = correspondenceMap.get(groupId);
+                }else {
+                     correspondence = new Correspondence(groupId, group,
+                            CorrespondenceType.GROUP,new ArrayList<>());
+                    correspondenceMap.put(groupId, correspondence);
+                    controllerClient.addButtonsForCorrespondence(correspondence);
+                }
+                correspondence.getMessageBoxList().add(messageBox);
+            }
+            default -> throw new IllegalStateException();
+        }
+        return correspondence;
+    }
 
     private void closeConnection() throws IOException {
         if (nonNull(in)) {
@@ -163,17 +234,16 @@ public class ChatClient implements IChatClient {
         if (nonNull(out)) {
             out.close();
         }
-        if (nonNull(inObj)) {
-            inObj.close();
+        if (nonNull(socket)) {
+            socket.close();
         }
-        if (nonNull(outObj)) {
-            outObj.close();
-        }
-        if (nonNull(objectSocket)) {
-            objectSocket.close();
-        }
-        if (nonNull(textSocket)) {
-            textSocket.close();
-        }
+    }
+
+    private static void showIllegalStateException(MessageBox messageBox) {
+        throw new IllegalStateException(String.format("Unexpected value: %s, %s, %s",
+                messageBox.getMessageTypeFirstLevel(),
+                messageBox.getMessageTypeSecondLevel(),
+                messageBox.getMessageTypeThirdLevel()
+        ));
     }
 }

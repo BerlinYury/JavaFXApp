@@ -5,15 +5,120 @@
     -fx-text-fill: #dcdcdc;
 }
 
-.container {
-    -fx-background-color: #3c3f41;
+ .list-view {
+    -fx-background-color: #17212B;
     -fx-border-color: #5c5f61;
     -fx-border-width: 1;
     -fx-border-style: solid;
     -fx-border-radius: 5;
-    -fx-padding: 10;
 }
 
+.list-cell {
+    -fx-background-color: #17212B;
+    -fx-text-fill: white; /* Цвет текста */
+}
+
+#listViewPerson {
+    -fx-border-color: transparent;
+    -fx-font-size: 13px; /* Устанавливаем размер шрифта */
+}#listViewPersonSelected {
+     -fx-border-color: transparent;
+     -fx-font-size: 13px; /* Устанавливаем размер шрифта */
+}
+
+#listViewPerson .list-cell:hover {
+    -fx-background-color: linear-gradient(#1E2935, #3b3b3b);
+}
+
+#listViewPerson .list-cell {
+    -fx-background-color: linear-gradient(#1E2935, #0F171F);
+    -fx-border-color: #5c5f61; /* Цвет рамки */
+    -fx-border-radius: 5;
+    -fx-padding: 10;
+    -fx-label-padding: 5;
+}#listViewPersonSelected .list-cell {
+     -fx-background-color: linear-gradient(#1E2935, #0F171F);
+     -fx-border-color: #5c5f61; /* Цвет рамки */
+     -fx-border-radius: 5;
+     -fx-padding: 10;
+     -fx-label-padding: 5;
+}
+ #allPersonsListLabel{
+     -fx-border-radius: 5;
+     -fx-padding: 5;
+ }
+#selectedPersonLabel{
+    -fx-border-radius: 5;
+     -fx-padding: 5;
+ }
+ #1 {
+     -fx-padding: 10 3 3 3;
+     -fx-border-color: #5c5f61;
+     -fx-border-width: 1;
+     -fx-border-style: solid;
+     -fx-border-radius: 5;
+ }
+ #2{
+     -fx-padding: 10 3 3 3;
+     -fx-border-color: #5c5f61;
+     -fx-border-width: 1;
+     -fx-border-style: solid;
+     -fx-border-radius: 5;
+ }
+
+.scroll-bar {
+    -fx-background-color: #1E2935;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-opacity: 0; /* Скрывает кнопки */
+    -fx-pref-width: 10; /* Убирает размер */
+    -fx-pref-height: 0;
+}
+
+.scroll-bar:horizontal .thumb,
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #3c3f41; /* Устанавливаем цвет ползунка*/
+}
+
+.scroll-bar:horizontal .track,
+.scroll-bar:vertical .track {
+    -fx-background-color: #1E2935;
+    -fx-border-color: #3c3f41;
+    -fx-border-radius: 5;
+
+}
+
+/* Стили для контейнеров сообщений */
+.message-container {
+    -fx-margin: 5;
+    /* Контейнер занимает всю ширину родительского элемента */
+}
+
+.incoming {
+    -fx-background-color: linear-gradient(#1E2935, #3b3b3b);
+    -fx-border-color: #90caf9;
+    -fx-border-width: 1;
+    -fx-border-radius: 11;
+    -fx-background-radius: 11;
+}
+
+.outgoing {
+    -fx-background-color: linear-gradient(#1E2935, #3b3b3b);
+    -fx-border-color: #90caf9;
+    -fx-border-width: 1;
+    -fx-border-radius: 11;
+    -fx-background-radius: 11;
+}
+
+.date {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* Стили для других элементов */
 .button {
     -fx-background-color: linear-gradient(#1E2935, #0F171F);
     -fx-text-fill: #dcdcdc;
@@ -25,6 +130,72 @@
 
 .button:hover {
     -fx-background-color: linear-gradient(#1E2935, #3b3b3b);
+}
+
+#menuBar {
+    -fx-background-color: linear-gradient(#1E2935, #0F171F);
+    -fx-text-fill: #dcdcdc;
+    -fx-border-color: #5c5f61;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 5 10;
+}
+
+#menuBar:hover {
+    -fx-background-color: linear-gradient(#1E2935, #90caf9);
+}
+
+#menuBar .menu {
+    -fx-background-color: transparent; /* Убирает фон */
+    -fx-text-fill: #dcdcdc; /* Цвет текста */
+    -fx-border-color: transparent; /* Убирает границу */
+}
+
+#menuBar .menu:hover {
+    -fx-background-color: transparent; /* Убирает фон при наведении */
+    -fx-border-color: transparent; /* Убирает границу при наведении */
+}
+
+.context-menu {
+    -fx-background-color: #1E2935; /* Фон меню */
+    -fx-text-fill: #dcdcdc; /* Цвет текста */
+    -fx-border-color: #5c5f61;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #dcdcdc;
+}
+
+.context-menu .menu-item:hover {
+    -fx-background-color: #3c3f41; /* Фон при наведении */
+}
+
+.dialog-pane {
+    -fx-background-color: #17212B; /* Фон диалогового окна */
+    -fx-border-color: #5c5f61; /* Цвет рамки */
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.dialog-pane .content {
+    -fx-text-fill: #dcdcdc; /* Цвет текста */
+}
+
+
+#buttonSend {
+    -fx-background-color: linear-gradient(#1E2935, #0F171F);
+    -fx-text-fill: #dcdcdc;
+    -fx-border-color: #5c5f61;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 5 10;
+}
+
+#buttonSend:hover {
+    -fx-background-color: linear-gradient(#1E2935, #90caf9);
 }
 
 .text-field {
@@ -62,35 +233,11 @@
 }
 
 .toggle-button-client:hover {
-    -fx-background-color: linear-gradient(#1E2935, #3b3b3b); /*  при наведении */
+    -fx-background-color: linear-gradient(#1E2935, #3b3b3b); /* при наведении */
 }
 
 .toggle-button-client:selected {
-    -fx-background-color: #3c3f41 /*  при выборе */
-}
-
-.scroll-pane .scroll-bar:horizontal .thumb,
-.scroll-pane .scroll-bar:vertical .thumb {
-    -fx-background-color: #3c3f41 /* Устанавливаем цвет ползунка в чёрный */
-}
-
-.scroll-pane .scroll-bar:horizontal .track,
-.scroll-pane .scroll-bar:vertical .track {
-    -fx-background-color: linear-gradient(#1E2935, #0F171F);
-}
-
-.scroll-pane .increment-button .increment-arrow,
-.scroll-pane .decrement-button .decrement-arrow {
-    -fx-background-color: #17212B; /* Устанавливаем цвет стрелочек */
-    -fx-border-color: #17212B; /* Устанавливаем цвет границы стрелочек */
-    -fx-border-width: 2px; /* Устанавливаем толщину границы, если нужно */
-}
-
-.scroll-pane .increment-button,
-.scroll-pane .decrement-button {
-    -fx-background-color: #17212B; /* Убираем фон кнопок, если необходимо */
-    -fx-border-color: #17212B; /* Устанавливаем цвет границы кнопок */
-    -fx-border-width: 2px; /* Устанавливаем толщину границы */
+    -fx-background-color: #3c3f41; /* при выборе */
 }
 
 .vbox, .hbox {

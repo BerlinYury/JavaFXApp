@@ -5,19 +5,23 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <VBox VBox.vgrow="ALWAYS" alignment="CENTER" spacing="5.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.example.client.ControllerRegistration">
+      fx:controller="com.example.client.ControllerRegistrationPerson">
     <VBox alignment="CENTER" minHeight="60">
-        <Label fx:id="labelLogin" text="Create a login:"/>
-        <TextField fx:id="login" onAction="#nextField" maxWidth="210.0"/>
+        <Label text="Create a email:"/>
+        <TextField fx:id="emailField" onAction="#nextField" maxWidth="210.0"/>
     </VBox>
     <VBox alignment="CENTER" minHeight="60">
-        <Label fx:id="labelPassword"  text="Create a password of 6-12 characters:"/>
-        <PasswordField fx:id="password" onAction="#nextField1" maxWidth="210.0"/>
+        <Label text="Create a name:"/>
+        <TextField fx:id="nameField" onAction="#nextField0" maxWidth="210.0"/>
     </VBox>
     <VBox alignment="CENTER" minHeight="60">
-        <Label fx:id="labelPasswordConfirmation"  text="Repeat password:"/>
-        <PasswordField fx:id="passwordConfirmation" onAction="#nextField2"  maxWidth="210.0"/>
+        <Label text="Create a password of 6-12 characters:"/>
+        <PasswordField fx:id="passwordField" onAction="#nextField1" maxWidth="210.0"/>
     </VBox>
-    <Button fx:id="buttonSendRegistration"  onAction="#sendButtonEnter" text="Enter"  minWidth="90.0" />
+    <VBox alignment="CENTER" minHeight="60">
+        <Label text="Repeat password:"/>
+        <PasswordField fx:id="passwordConfirmationField" onAction="#nextField2" maxWidth="210.0"/>
+    </VBox>
+    <Button onAction="#clickButtonEnter" text="Enter" minWidth="90.0"/>
 </VBox>
 
