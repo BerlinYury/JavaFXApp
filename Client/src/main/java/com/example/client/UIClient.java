@@ -14,78 +14,105 @@ import java.util.Objects;
 
 @NoArgsConstructor
 @Getter
-public class UIClient extends Application implements IUIClient {
-    private ControllerClient controllerClient;
-    private ControllerAuthenticate controllerAuthenticate;
-    private ControllerRegistration controllerRegistration;
-    private ChatClient chatClient;
-    private Stage startStage;
-    private Stage authenticateStage;
-    private Stage registrationStage;
+public class UIClient extends Application {
+    ChatClient chatClient;
 
     public static void go(String[] args) {
         launch(args);
     }
 
-    /**
-     * Метод start вызывается при запуске приложения и создает сцену для главного окна,
-     * загружает FXML-файл, создает контроллер, передает ссылки между объектами и отображает окно.
-     * Также создает сцену для окна аутентификации, загружает соответствующий FXML-файл,
-     * передает ссылки на объекты, создает новое окно и отображает его.
-     */
     @Override
-    public void start(Stage stage) throws IOException {
-        // Создание сцены для главного окна
+    public void start(Stage startStage) throws IOException {
         FXMLLoader loader = new FXMLLoader(UIClient.class.getResource("start-view.fxml"));
         Parent root = loader.load();
-        controllerClient = loader.getController();
-        controllerClient.setUiClient(this);
+        ControllerClient controllerClient = loader.getController();
 
-        this.startStage = stage;
-        Scene scene = new Scene(root, 800, 500);
+        Scene scene = new Scene(root, 800, 537);
         scene.getStylesheets().add(Objects.requireNonNull(UIClient.class.getResource("style.css")).toExternalForm());
         startStage.setScene(scene);
-        controllerClient.setLabel();
-        startStage.setOnCloseRequest(event -> {
-            controllerAuthenticate.offTimer();
-            controllerAuthenticate.closeAllWindows();
-        });
+        controllerClient.setUnitsListLabel();
 
-        // Создание сцены для окна аутентификации
         FXMLLoader secondaryFxmlLoader = new FXMLLoader(UIClient.class.getResource("authenticate-view.fxml"));
         Parent secondaryRoot = secondaryFxmlLoader.load();
-        controllerAuthenticate = secondaryFxmlLoader.getController();
-        controllerAuthenticate.setUiClient(this);
+        ControllerAuthenticate controllerAuthenticate = secondaryFxmlLoader.getController();
 
-        authenticateStage = new Stage();
+        Stage authenticateStage = new Stage();
         Scene secondaryScene = new Scene(secondaryRoot, 320, 170);
         secondaryScene.getStylesheets().add(Objects.requireNonNull(UIClient.class.getResource("style.css")).toExternalForm());
         authenticateStage.setTitle("Authenticate");
         authenticateStage.setScene(secondaryScene);
         authenticateStage.show();
-        authenticateStage.setOnCloseRequest(event -> {
-            controllerAuthenticate.offTimer();
-            controllerAuthenticate.closeAllWindows();
-        });
 
-        // Создание сцены для окна регистрации
         FXMLLoader thirdFxmlLoader = new FXMLLoader(UIClient.class.getResource("registration-view.fxml"));
         Parent thirdRoot = thirdFxmlLoader.load();
-        controllerRegistration = thirdFxmlLoader.getController();
-        controllerRegistration.setUiClient(this);
+        ControllerRegistrationPerson controllerRegistrationPerson = thirdFxmlLoader.getController();
 
-        registrationStage = new Stage();
+        Stage registrationStage = new Stage();
         Scene thirdScene = new Scene(thirdRoot, 320, 400);
         thirdScene.getStylesheets().add(Objects.requireNonNull(UIClient.class.getResource("style.css")).toExternalForm());
         registrationStage.setTitle("Registration");
         registrationStage.setScene(thirdScene);
+
+        startStage.setOnCloseRequest(event -> {
+            controllerAuthenticate.offTimer();
+            controllerClient.closeAllWindows();
+        });
+        authenticateStage.setOnCloseRequest(event -> {
+            controllerAuthenticate.offTimer();
+            controllerAuthenticate.closeAllWindows();
+        });
         registrationStage.setOnCloseRequest(event -> {
             controllerAuthenticate.restartTimer();
             authenticateStage.show();
         });
 
-        chatClient = new ChatClient(controllerClient, controllerAuthenticate, controllerRegistration);
+        chatClient = new ChatClient(controllerClient, controllerAuthenticate, controllerRegistrationPerson);
+        Controller.setUiClient(this, chatClient, startStage,
+                authenticateStage, registrationStage, controllerClient,
+                controllerAuthenticate, controllerRegistrationPerson);
+
         chatClient.openConnection();
+    }
+
+    public void startCreateChatStage() {
+        FXMLLoader fifthFxmlLoader = new FXMLLoader(UIClient.class.getResource("create-chat-view.fxml"));
+        Parent fifthRoot;
+        try {
+            fifthRoot = fifthFxmlLoader.load();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        ControllerCreateChat controllerCreateChat = fifthFxmlLoader.getController();
+
+        Stage createChatStage = new Stage();
+        Scene fifthScene = new Scene(fifthRoot, 500, 428);
+        fifthScene.getStylesheets().add(Objects.requireNonNull(UIClient.class.getResource("style.css")).toExternalForm());
+        createChatStage.setTitle("Create new Chat");
+        createChatStage.setScene(fifthScene);
+
+        Controller.setCreateChat(controllerCreateChat, createChatStage);
+        chatClient.setControllerCreateChat(controllerCreateChat);
+        createChatStage.show();
+    }
+    public void startCreateGroupStage(){
+        FXMLLoader fourthFxmlLoader = new FXMLLoader(UIClient.class.getResource("create-group-view.fxml"));
+        Parent fourthRoot;
+        try {
+            fourthRoot = fourthFxmlLoader.load();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        ControllerCreateGroup controllerCreateGroup = fourthFxmlLoader.getController();
+
+        Stage createGroupStage = new Stage();
+        Scene fourthScene = new Scene(fourthRoot, 500, 428);
+        fourthScene.getStylesheets().add(Objects.requireNonNull(UIClient.class.getResource("style.css")).toExternalForm());
+        createGroupStage.setTitle("Create new Group");
+        createGroupStage.setScene(fourthScene);
+
+        Controller.setControllerCreateGroup(controllerCreateGroup,createGroupStage);
+        chatClient.setControllerCreateGroup(controllerCreateGroup);
+        createGroupStage.show();
     }
 }
 

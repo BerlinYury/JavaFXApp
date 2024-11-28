@@ -1,9 +1,7 @@
 package com.example.server;
 
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 
-import java.io.IOException;
+import javafx.fxml.FXML;
 
 public class ControllerServer {
     private UIServer uiServer;

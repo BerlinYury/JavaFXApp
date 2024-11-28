@@ -7,7 +7,9 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import lombok.Getter;
 
-public class UIServer extends Application  implements IUIServer{
+import java.util.Objects;
+
+public class UIServer extends Application  {
     @Getter
     private Stage stage;
 
@@ -24,6 +26,7 @@ public class UIServer extends Application  implements IUIServer{
         controller.setUIServer(this);
 
         Scene scene = new Scene(root, 200, 150);
+        scene.getStylesheets().add(Objects.requireNonNull(UIServer.class.getResource("style.css")).toExternalForm());
         stage.setScene(scene);
         stage.show();
     }

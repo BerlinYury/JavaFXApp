@@ -5,32 +5,35 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.control.ScrollPane?>
-<VBox VBox.vgrow="ALWAYS" alignment="CENTER" spacing="5.0" xmlns:fx="http://javafx.com/fxml"
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.Menu?>
+<VBox alignment="CENTER" spacing="5.0" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.example.client.ControllerClient">
     <padding>
         <Insets bottom="3.0" left="5.0" right="3.0" top="6.0"/>
     </padding>
     <HBox VBox.vgrow="ALWAYS" spacing="3">
-        <ScrollPane fx:id="scrollPane" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS" fitToWidth="true">
-            <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
-            </padding>
-            <VBox fx:id="messagesContainer" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS">
-            </VBox>
-        </ScrollPane>
-        <VBox fx:id="clientsListBox" VBox.vgrow="ALWAYS" maxWidth="170" minWidth="170" >
+        <VBox HBox.hgrow="ALWAYS">
+            <Label fx:id="selectedUnitLabel" text="Выберите, кому хотели бы написать" minHeight="32"/>
+            <ScrollPane fx:id="scrollPane"  VBox.vgrow="ALWAYS" fitToWidth="true" >
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+                <VBox fx:id="messageContainerField" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS" spacing="10" />
+            </ScrollPane>
+        </VBox>
+        <VBox minWidth="170">
             <HBox alignment="CENTER_RIGHT">
-                <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="logout" text="logout" onAction="#logout"/>
+                <MenuBar fx:id="menuBar"/>
             </HBox>
-            <Label fx:id="label" text="  Список клиентов:"/>
-            <VBox fx:id="clientsList" VBox.vgrow="ALWAYS"/>
+            <Label fx:id="unitsListLabel" text="  Список клиентов:"/>
+            <ListView fx:id="listView" VBox.vgrow="ALWAYS" prefWidth="195.0"/>
         </VBox>
     </HBox>
     <HBox spacing="3">
-        <TextField fx:id="fieldText" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS" onAction="#sendButtonClick"/>
-        <Button fx:id="buttonSend" text="Send" onAction="#sendButtonClick" minWidth="170.0" />
+        <TextField fx:id="textField" HBox.hgrow="ALWAYS" onAction="#clickButtonSend"/>
+        <Button fx:id="buttonSend" text="Send" onAction="#clickButtonSend" minWidth="195.0"/>
     </HBox>
 </VBox>

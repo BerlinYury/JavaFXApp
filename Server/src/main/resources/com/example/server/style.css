@@ -1,0 +1,33 @@
+/* Общие настройки для темного фона */
+.root {
+    -fx-background-color: #17212B;
+    -fx-font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    -fx-text-fill: #dcdcdc;
+}
+
+.container {
+    -fx-background-color: #3c3f41;
+    -fx-border-color: #5c5f61;
+    -fx-border-width: 1;
+    -fx-border-style: solid;
+    -fx-border-radius: 5;
+    -fx-padding: 10;
+}
+
+.button {
+    -fx-background-color: linear-gradient(#1E2935, #0F171F);
+    -fx-text-fill: #dcdcdc;
+    -fx-border-color: #5c5f61;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 5 10;
+}
+
+.button:hover {
+    -fx-background-color: linear-gradient(#1E2935, #3b3b3b);
+}
+
+.label {
+    -fx-text-fill: #dcdcdc;
+}
+
