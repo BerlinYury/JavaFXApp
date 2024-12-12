@@ -1,5 +1,7 @@
 package com.example.api;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,7 +13,10 @@ public class Person extends Unit{
     @Setter
     private boolean status;
 
-    public Person(String id, String name) {
+    @JsonCreator
+    public Person(
+            @JsonProperty("id") String id,
+            @JsonProperty("name") String name){
         super(id, name);
     }
 

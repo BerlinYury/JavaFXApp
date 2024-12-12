@@ -1,5 +1,7 @@
 package com.example.api;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.util.Comparator;
@@ -12,7 +14,13 @@ public class Group extends Unit {
     @Getter
     private final Person admin;
 
-    public Group(String id, String name, List<Person> personInGroupList, Person admin) {
+    @JsonCreator
+    public Group(
+            @JsonProperty("id") String id,
+            @JsonProperty("name") String name,
+            @JsonProperty("personInGroupList") List<Person> personInGroupList,
+            @JsonProperty("admin") Person admin
+    ) {
         super(id, name);
         this.personInGroupList = personInGroupList;
         this.admin = admin;

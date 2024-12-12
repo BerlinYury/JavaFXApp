@@ -1,5 +1,9 @@
 package com.example.api;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.*;
 
 import java.io.Serializable;
@@ -10,6 +14,7 @@ import java.util.Objects;
 
 
 @Getter
+@JsonDeserialize(builder = MessageBox.Builder.class)
 public class MessageBox implements Serializable {
     private final String messageId;
     private final MessageTypeFirstLevel messageTypeFirstLevel;
@@ -24,11 +29,11 @@ public class MessageBox implements Serializable {
     private final String message;
     private final String email;
     private final String password;
-    private final int counterUnit;
     private final List<Person> activePersonList;
     private final List<Person> allPersonList;
     private final List<Group> groupWhereIAmAMemberList;
     private final List<MessageTypeThirdLevel> errorOnFieldList;
+    private final boolean history;
 
     private MessageBox(Builder builder) {
         this.messageId = builder.messageId;
@@ -44,11 +49,34 @@ public class MessageBox implements Serializable {
         this.message = builder.message;
         this.email = builder.email;
         this.password = builder.password;
-        this.counterUnit = builder.counterUnit;
         this.activePersonList = builder.activePersonList;
         this.allPersonList = builder.allPersonList;
         this.groupWhereIAmAMemberList = builder.groupWhereIAmAMember;
         this.errorOnFieldList = builder.errorOnFieldList;
+        this.history= builder.history;
+    }
+
+
+    // Метод для сериализации объекта в JSON
+    public String toJson() {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            return objectMapper.writeValueAsString(this);
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка сериализации объекта MessageBox", e);
+        }
+    }
+
+    // Метод для десериализации из JSON
+    public static MessageBox fromJson(String json) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            return objectMapper.readValue(json, MessageBox.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка десериализации объекта MessageBox", e);
+        }
     }
 
     @Override
@@ -80,8 +108,7 @@ public class MessageBox implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof MessageBox that)) return false;
-        return getCounterUnit() == that.getCounterUnit() &&
-                getMessageTypeFirstLevel() == that.getMessageTypeFirstLevel() &&
+        return getMessageTypeFirstLevel() == that.getMessageTypeFirstLevel() &&
                 getMessageTypeSecondLevel() == that.getMessageTypeSecondLevel() &&
                 getMessageTypeThirdLevel() == that.getMessageTypeThirdLevel() &&
                 getMessageTypeFourLevel() == that.getMessageTypeFourLevel() &&
@@ -96,7 +123,8 @@ public class MessageBox implements Serializable {
                 Objects.equals(getActivePersonList(), that.getActivePersonList()) &&
                 Objects.equals(getAllPersonList(), that.getAllPersonList()) &&
                 Objects.equals(getGroupWhereIAmAMemberList(), that.getGroupWhereIAmAMemberList()) &&
-                Objects.equals(getErrorOnFieldList(), that.getErrorOnFieldList());
+                Objects.equals(getErrorOnFieldList(), that.getErrorOnFieldList())&&
+                isHistory()==that.isHistory();
     }
 
     @Override
@@ -105,38 +133,77 @@ public class MessageBox implements Serializable {
                 getMessageTypeFirstLevel(), getMessageTypeSecondLevel(),
                 getMessageTypeThirdLevel(), getMessageTypeFourLevel(), getDateTime(),
                 getOwner(), getPerson(), getGroup(), getSender(), getMessage(), getEmail(),
-                getPassword(), getCounterUnit(), getActivePersonList(), getAllPersonList(),
-                getGroupWhereIAmAMemberList(), getErrorOnFieldList());
+                getPassword(), getActivePersonList(), getAllPersonList(),
+                getGroupWhereIAmAMemberList(), getErrorOnFieldList(), isHistory());
     }
 
     @NoArgsConstructor
     public static class Builder {
+        @JsonProperty("messageId")
         private String messageId;
+        @JsonProperty("messageTypeFirstLevel")
         private MessageTypeFirstLevel messageTypeFirstLevel;
+
+        @JsonProperty("messageTypeSecondLevel")
         private MessageTypeSecondLevel messageTypeSecondLevel;
+
+        @JsonProperty("messageTypeThirdLevel")
         private MessageTypeThirdLevel messageTypeThirdLevel;
+
+        @JsonProperty("messageTypeFourLevel")
         private MessageTypeFourLevel messageTypeFourLevel;
+        @JsonProperty("dateTime")
         private LocalDateTime dateTime;
+
+        @JsonProperty("owner")
         private Person owner;
+
+        @JsonProperty("person")
         private Person person;
+
+        @JsonProperty("group")
         private Group group;
+
+        @JsonProperty("sender")
         private Person sender;
+
+        @JsonProperty("message")
         private String message;
+
+        @JsonProperty("email")
         private String email;
+
+        @JsonProperty("password")
         private String password;
-        private int counterUnit;
+
+        @JsonProperty("activePersonList")
         private List<Person> activePersonList;
+
+        @JsonProperty("allPersonList")
         private List<Person> allPersonList;
+
+        @JsonProperty("groupWhereIAmAMemberList")
         private List<Group> groupWhereIAmAMember;
+
+        @JsonProperty("errorOnFieldList")
         private List<MessageTypeThirdLevel> errorOnFieldList;
 
+        @JsonProperty("history")
+        private boolean history;
+
+
+        // Стандартный метод build() для Jackson
+        public MessageBox build() {
+            return new MessageBox(this);
+        }
 
         public MessageBox buildMessageOutingPerson(
                 String messageId,
                 LocalDateTime dateTime,
                 Person owner,
                 Person person,
-                String message) {
+                String message,
+                boolean history) {
             this.messageId = messageId;
             this.messageTypeFirstLevel = MessageTypeFirstLevel.MESSAGE;
             this.messageTypeSecondLevel = MessageTypeSecondLevel.OUTGOING;
@@ -145,6 +212,7 @@ public class MessageBox implements Serializable {
             this.owner = owner;
             this.person = person;
             this.message = message;
+            this.history = history;
             return new MessageBox(this);
         }
 
@@ -154,7 +222,8 @@ public class MessageBox implements Serializable {
                 Person owner,
                 Group group,
                 Person sender,
-                String message) {
+                String message,
+                boolean history) {
             this.messageId = messageId;
             this.messageTypeFirstLevel = MessageTypeFirstLevel.MESSAGE;
             this.messageTypeSecondLevel = MessageTypeSecondLevel.OUTGOING;
@@ -164,6 +233,7 @@ public class MessageBox implements Serializable {
             this.group = group;
             this.sender = sender;
             this.message = message;
+            this.history = history;
             return new MessageBox(this);
         }
 
@@ -172,7 +242,8 @@ public class MessageBox implements Serializable {
                 LocalDateTime dateTime,
                 Person owner,
                 Person person,
-                String message) {
+                String message,
+                boolean history) {
             this.messageId = messageId;
             this.messageTypeFirstLevel = MessageTypeFirstLevel.MESSAGE;
             this.messageTypeSecondLevel = MessageTypeSecondLevel.INCOMING;
@@ -181,6 +252,7 @@ public class MessageBox implements Serializable {
             this.owner = owner;
             this.person = person;
             this.message = message;
+            this.history = history;
             return new MessageBox(this);
         }
 
@@ -190,7 +262,8 @@ public class MessageBox implements Serializable {
                 Person owner,
                 Group group,
                 Person sender,
-                String message) {
+                String message,
+                boolean history) {
             this.messageId = messageId;
             this.messageTypeFirstLevel = MessageTypeFirstLevel.MESSAGE;
             this.messageTypeSecondLevel = MessageTypeSecondLevel.INCOMING;
@@ -200,6 +273,7 @@ public class MessageBox implements Serializable {
             this.group = group;
             this.sender = sender;
             this.message = message;
+            this.history = history;
             return new MessageBox(this);
         }
 
@@ -337,17 +411,10 @@ public class MessageBox implements Serializable {
         }
 
 
-        public MessageBox buildCommandRecoveryCorrespondenceHistory(int counterUnit) {
-            this.messageTypeFirstLevel = MessageTypeFirstLevel.COMMAND;
-            this.messageTypeSecondLevel = MessageTypeSecondLevel.RECOVERY;
-            this.messageTypeThirdLevel = MessageTypeThirdLevel.CORRESPONDENCE_HISTORY;
-            this.counterUnit = counterUnit;
-            return new MessageBox(this);
-        }
-
-        public MessageBox buildCommandEnd() {
+        public MessageBox buildCommandEnd(Person myPerson) {
             this.messageTypeFirstLevel = MessageTypeFirstLevel.COMMAND;
             this.messageTypeSecondLevel = MessageTypeSecondLevel.END;
+            this.person = myPerson;
             return new MessageBox(this);
         }
 

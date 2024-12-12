@@ -270,9 +270,9 @@ class TestDatabaseHandling {
             } else {
                 switch (messageBox.getMessageTypeFourLevel()) {
                     case PERSON ->
-                            messageBoxList.add(new MessageBox.Builder().buildMessageIncomingPerson(UUID.randomUUID().toString(), messageBox.getDateTime(), messageBox.getPerson(), messageBox.getOwner(), messageBox.getMessage()));
+                            messageBoxList.add(new MessageBox.Builder().buildMessageIncomingPerson(UUID.randomUUID().toString(), messageBox.getDateTime(), messageBox.getPerson(), messageBox.getOwner(), messageBox.getMessage(),false));
                     case GROUP ->
-                            messageBoxList.add(new MessageBox.Builder().buildMessageIncomingGroup(UUID.randomUUID().toString(), messageBox.getDateTime(), person, messageBox.getGroup(), messageBox.getSender(), messageBox.getMessage()));
+                            messageBoxList.add(new MessageBox.Builder().buildMessageIncomingGroup(UUID.randomUUID().toString(), messageBox.getDateTime(), person, messageBox.getGroup(), messageBox.getSender(), messageBox.getMessage(),false));
                 }
             }
         }

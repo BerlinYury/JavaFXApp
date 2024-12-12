@@ -7,7 +7,7 @@
     <file url="file://$PROJECT_DIR$/Client/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Server/logs/archived/app.2023-07-10.0.log.gz" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Server/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/Server/src/main/java/com/example/server/DataFilling.java" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/Server/src/main/java/com/example/server/DataFilling.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Server/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Server/src/main/resources/META-INF" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Server/src/test/java/com/example/server/Group.java" charset="UTF-8" />

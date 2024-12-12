@@ -130,7 +130,8 @@ public class AssertionMethods {
                             dateTime,
                             new Person(ownerId, ownerName),
                             new Person(personId, personName),
-                            message
+                            message,
+                            false
                     );
 
                     case GROUP -> messageBoxResult = new MessageBox.Builder().buildMessageOutingGroup(
@@ -139,7 +140,8 @@ public class AssertionMethods {
                             new Person(ownerId, ownerName),
                             new Group(groupId, groupName, personInGroupList, new Person(adminId, adminName)),
                             new Person(senderId, senderName),
-                            message
+                            message,
+                            false
                     );
                 }
             }

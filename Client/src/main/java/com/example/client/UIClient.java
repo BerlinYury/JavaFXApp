@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Objects;
 
 
@@ -65,13 +66,15 @@ public class UIClient extends Application {
             controllerAuthenticate.restartTimer();
             authenticateStage.show();
         });
-
-        chatClient = new ChatClient(controllerClient, controllerAuthenticate, controllerRegistrationPerson);
+        try {
+            chatClient = new ChatClient(controllerClient, controllerAuthenticate, controllerRegistrationPerson);
+            chatClient.connect(); // Устанавливаем соединение
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
         Controller.setUiClient(this, chatClient, startStage,
                 authenticateStage, registrationStage, controllerClient,
                 controllerAuthenticate, controllerRegistrationPerson);
-
-        chatClient.openConnection();
     }
 
     public void startCreateChatStage() {

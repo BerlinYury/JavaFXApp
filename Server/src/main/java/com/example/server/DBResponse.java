@@ -1,7 +1,6 @@
 package com.example.server;
 
 import com.example.api.MessageTypeThirdLevel;
-import com.example.api.Person;
 import lombok.Getter;
 import lombok.ToString;
 
