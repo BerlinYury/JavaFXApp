@@ -3,20 +3,17 @@ package com.example.client;
 import com.example.api.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
 
-import java.io.*;
-import java.net.ConnectException;
-import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.util.Objects.*;
 
 @Slf4j
-public class ChatClient {
-    private Socket socket;
-    private ObjectInputStream in;
-    private ObjectOutputStream out;
+public class ChatClient extends WebSocketClient {
     private final ControllerClient controllerClient;
     private final ControllerAuthenticate controllerAuthenticate;
     private final ControllerRegistrationPerson controllerRegistrationPerson;
@@ -28,7 +25,8 @@ public class ChatClient {
     public ChatClient(ControllerClient controllerClient,
                       ControllerAuthenticate controllerAuthenticate,
                       ControllerRegistrationPerson controllerRegistrationPerson
-    ) {
+    ) throws URISyntaxException {
+        super(new URI("ws://localhost:8129")); // URI WebSocket-сервера
         this.controllerClient = controllerClient;
         this.controllerAuthenticate = controllerAuthenticate;
         this.controllerRegistrationPerson = controllerRegistrationPerson;
@@ -43,51 +41,29 @@ public class ChatClient {
         this.controllerCreateGroup = controllerCreateGroup;
     }
 
-    public void openConnection() {
-        ThreadManagerClient.getInstance().getExecutorService().execute(() -> {
-            try {
-                String LOCALHOST = "localhost";
-                int PORT = 8129;
-                socket = new Socket(LOCALHOST, PORT);
-                out = new ObjectOutputStream(socket.getOutputStream());
-                in = new ObjectInputStream(socket.getInputStream());
-                readMessage();
-            } catch (ConnectException cE) {
-                System.out.println("Cервер не запущен");
-                System.exit(1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    closeConnection();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    private void readMessage() {
+    @Override
+    public void onMessage(String message) {
         try {
-            while (true) {
-                MessageBox messageBox = (MessageBox) in.readObject();
-                switch (messageBox.getMessageTypeFirstLevel()) {
-                    case COMMAND -> workWithCommand(messageBox);
-                    case MESSAGE -> workWithMessage(messageBox);
-                    default -> showIllegalStateException(messageBox);
-                }
+            MessageBox messageBox = MessageBox.fromJson(message);
+            switch (messageBox.getMessageTypeFirstLevel()) {
+                case COMMAND -> workWithCommand(messageBox);
+                case MESSAGE -> workWithMessage(messageBox);
+                default -> showIllegalStateException(messageBox);
             }
-        } catch (EOFException e) {
-            System.out.println(e.getClass().getName());
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+
     private void workWithMessage(MessageBox messageBox) {
-        switch (messageBox.getMessageTypeSecondLevel()) {
-            case INCOMING -> controllerClient.addIncomingMessage(messageBox);
-            default -> showIllegalStateException(messageBox);
+        if (messageBox.isHistory()){
+            addMessageToMap(messageBox);
+        }else {
+            switch (messageBox.getMessageTypeSecondLevel()) {
+                case INCOMING -> controllerClient.addIncomingMessage(messageBox);
+                default -> showIllegalStateException(messageBox);
+            }
         }
     }
 
@@ -96,7 +72,6 @@ public class ChatClient {
             case ACCEPT -> workWithAccept(messageBox);
             case FAILED -> workWithFailed(messageBox);
             case CHANGE -> workWithChange(messageBox);
-            case RECOVERY -> workWithRecovery(messageBox);
             default -> showIllegalStateException(messageBox);
         }
     }
@@ -141,16 +116,7 @@ public class ChatClient {
             }
             default -> showIllegalStateException(messageBox);
         }
-
     }
-
-    private void workWithRecovery(MessageBox messageBox) {
-        switch (messageBox.getMessageTypeThirdLevel()) {
-            case CORRESPONDENCE_HISTORY -> deserializeMessages(messageBox.getCounterUnit());
-            default -> showIllegalStateException(messageBox);
-        }
-    }
-
 
     private void workWithChange(MessageBox messageBox) {
         switch (messageBox.getMessageTypeThirdLevel()) {
@@ -175,22 +141,7 @@ public class ChatClient {
     }
 
     public void sendMessage(MessageBox messageBox) {
-        try {
-            out.writeObject(messageBox);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void deserializeMessages(int counterObj) {
-        try {
-            for (int i = 0; i < counterObj; i++) {
-                MessageBox messageBox = (MessageBox) in.readObject();
-                addMessageToMap(messageBox);
-            }
-        } catch (IOException | ClassNotFoundException ex) {
-            throw new RuntimeException(ex);
-        }
+            send(messageBox.toJson());
     }
 
     public Correspondence addMessageToMap(MessageBox messageBox) {
@@ -227,23 +178,27 @@ public class ChatClient {
         return correspondence;
     }
 
-    private void closeConnection() throws IOException {
-        if (nonNull(in)) {
-            in.close();
-        }
-        if (nonNull(out)) {
-            out.close();
-        }
-        if (nonNull(socket)) {
-            socket.close();
-        }
-    }
-
     private static void showIllegalStateException(MessageBox messageBox) {
         throw new IllegalStateException(String.format("Unexpected value: %s, %s, %s",
                 messageBox.getMessageTypeFirstLevel(),
                 messageBox.getMessageTypeSecondLevel(),
                 messageBox.getMessageTypeThirdLevel()
         ));
+    }
+
+    @Override
+    public void onOpen(ServerHandshake serverHandshake) {
+        System.out.println("Соединение установлено");
+        log.info("Соединение установлено");
+    }
+
+    @Override
+    public void onClose(int code, String reason, boolean remote) {
+        log.info("Соединение закрыто: {} - {}", code, reason);
+    }
+
+    @Override
+    public void onError(Exception ex) {
+        log.error("Ошибка соединения", ex);
     }
 }

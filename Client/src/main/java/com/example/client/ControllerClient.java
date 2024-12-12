@@ -102,7 +102,8 @@ public class ControllerClient extends Controller {
                         LocalDateTime.now(),
                         myPerson,
                         person,
-                        textOnTextField);
+                        textOnTextField,
+                        false);
             }
             case GROUP -> {
                 Group group = (Group) correspondence.getUnit();
@@ -112,7 +113,8 @@ public class ControllerClient extends Controller {
                         myPerson,
                         group,
                         myPerson,
-                        textOnTextField
+                        textOnTextField,
+                        false
                 );
             }
             default -> throw new IllegalArgumentException();
@@ -349,7 +351,7 @@ public class ControllerClient extends Controller {
     }
 
     public void exit() {
-        chatClient.sendMessage(new MessageBox.Builder().buildCommandEnd());
+        chatClient.sendMessage(new MessageBox.Builder().buildCommandEnd(myPerson));
     }
 
     public void showStartStage() {

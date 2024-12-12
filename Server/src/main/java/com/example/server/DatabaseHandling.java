@@ -301,7 +301,7 @@ public class DatabaseHandling {
                             }
 
                             messageBoxList.add(new MessageBox.Builder()
-                                    .buildMessageOutingPerson(messageId, dateTime, owner, person, message)
+                                    .buildMessageOutingPerson(messageId, dateTime, owner, person, message,true)
                             );
                         }
                         case GROUP -> {
@@ -341,7 +341,7 @@ public class DatabaseHandling {
                             messageBoxList.add(new MessageBox.Builder()
                                     .buildMessageOutingGroup(
                                             messageId, dateTime, owner,
-                                            group, sender, message)
+                                            group, sender, message,true)
                             );
                         }
                     }
@@ -371,7 +371,7 @@ public class DatabaseHandling {
                             messageBoxList.add(new MessageBox.Builder()
                                     .buildMessageIncomingPerson(
                                             UUID.randomUUID().toString(), dateTime, newOwner,
-                                            newPerson, message)
+                                            newPerson, message, true)
                             );
                         }
                         case GROUP -> {
@@ -412,7 +412,7 @@ public class DatabaseHandling {
                             messageBoxList.add(new MessageBox.Builder()
                                     .buildMessageIncomingGroup(
                                             UUID.randomUUID().toString(), dateTime, newOwner,
-                                            group, sender, message));
+                                            group, sender, message,true));
                         }
                     }
                 }

@@ -105,12 +105,12 @@ public class TestDataFilling {
 
             MessageBox messageOutingPerson =
                     new MessageBox.Builder().buildMessageOutingPerson(UUID.randomUUID().toString(),
-                            LocalDateTime.now().withNano(0), owner, person, String.format("outPerson: %d", i));
+                            LocalDateTime.now().withNano(0), owner, person, String.format("outPerson: %d", i),false);
             messageBoxList.add(messageOutingPerson);
 
             MessageBox messageOutingGroup =
                     new MessageBox.Builder().buildMessageOutingGroup(UUID.randomUUID().toString(),
-                            LocalDateTime.now().withNano(0), owner, group, sender, String.format("outGroup: %d", i));
+                            LocalDateTime.now().withNano(0), owner, group, sender, String.format("outGroup: %d", i),false);
             messageBoxList.add(messageOutingGroup);
         }
     }

@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -120,13 +119,13 @@ public class DataFilling {
 
             MessageBox messageOutingPerson =
                     new MessageBox.Builder().buildMessageOutingPerson(UUID.randomUUID().toString(),
-                            LocalDateTime.now().withNano(0), owner, person, String.format("outPerson: %d", i));
+                            LocalDateTime.now().withNano(0), owner, person, String.format("outPerson: %d", i),false);
             messageBoxList.add(messageOutingPerson);
             databaseHandling.addMessageToDB(messageOutingPerson);
 
             MessageBox messageOutingGroup =
                     new MessageBox.Builder().buildMessageOutingGroup(UUID.randomUUID().toString(),
-                            LocalDateTime.now().withNano(0), owner, group, sender, String.format("outGroup: %d", i));
+                            LocalDateTime.now().withNano(0), owner, group, sender, String.format("outGroup: %d", i),false);
             messageBoxList.add(messageOutingGroup);
             databaseHandling.addMessageToDB(messageOutingGroup);
         }
