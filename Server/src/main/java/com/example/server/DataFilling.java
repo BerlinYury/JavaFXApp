@@ -130,6 +130,7 @@ public class DataFilling {
             databaseHandling.addMessageToDB(messageOutingGroup);
         }
     }
+
     public void cleanAllTables() {
         try {
             Statement statement = connection.createStatement();
