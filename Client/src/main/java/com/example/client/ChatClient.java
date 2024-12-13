@@ -55,7 +55,6 @@ public class ChatClient extends WebSocketClient {
         }
     }
 
-
     private void workWithMessage(MessageBox messageBox) {
         if (messageBox.isHistory()){
             addMessageToMap(messageBox);
@@ -68,14 +67,14 @@ public class ChatClient extends WebSocketClient {
     }
 
     private void workWithCommand(MessageBox messageBox) {
-        switch (messageBox.getMessageTypeSecondLevel()) {
+        var messageType = messageBox.getMessageTypeSecondLevel();
+        switch (messageType) {
             case ACCEPT -> workWithAccept(messageBox);
             case FAILED -> workWithFailed(messageBox);
             case CHANGE -> workWithChange(messageBox);
             default -> showIllegalStateException(messageBox);
         }
     }
-
     private void workWithAccept(MessageBox messageBox) {
         switch (messageBox.getMessageTypeThirdLevel()) {
             case REG -> {
