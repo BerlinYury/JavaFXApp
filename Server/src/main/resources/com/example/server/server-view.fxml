@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Button?>
-
-<VBox VBox.vgrow="ALWAYS" alignment="CENTER" spacing="5.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.example.server.ControllerServer">
-        <Button fx:id="buttonStopServer" text="Stop Server" onAction="#stopButtonClick" minWidth="170.0" visible="true"/>
-</VBox>

@@ -12,7 +12,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Getter
 public class TestDataFilling {
-    private final Connection connection;
     private final DatabaseHandling databaseHandling;
 
     private ArrayList<MessageBox> messageBoxRegPersonList;
@@ -27,8 +26,7 @@ public class TestDataFilling {
     private final int maxCountPersonInGroup = 15;
     private final int maxCountMessage = 100;
 
-    public TestDataFilling(Connection connection, DatabaseHandling databaseHandling) {
-        this.connection = connection;
+    public TestDataFilling(DatabaseHandling databaseHandling) {
         this.databaseHandling = databaseHandling;
     }
 

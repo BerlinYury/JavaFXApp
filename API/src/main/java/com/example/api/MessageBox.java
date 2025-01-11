@@ -411,10 +411,9 @@ public class MessageBox implements Serializable {
         }
 
 
-        public MessageBox buildCommandEnd(Person myPerson) {
+        public MessageBox buildCommandEnd() {
             this.messageTypeFirstLevel = MessageTypeFirstLevel.COMMAND;
             this.messageTypeSecondLevel = MessageTypeSecondLevel.END;
-            this.person = myPerson;
             return new MessageBox(this);
         }
 

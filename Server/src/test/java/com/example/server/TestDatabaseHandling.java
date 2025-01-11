@@ -19,10 +19,9 @@ class TestDatabaseHandling {
 
     @BeforeAll
     public static void setUp() {
-        databaseHandling = new DatabaseHandling();
-        Connection connection = databaseHandling.getConnection();
-        assertionMethods = new AssertionMethods(connection, databaseHandling);
-        testDataFilling = new TestDataFilling(connection, databaseHandling).fill();
+        databaseHandling = new DatabaseHandling("jdbc:mysql://localhost:3306/chat", "root","Cotton68");
+        assertionMethods = new AssertionMethods(databaseHandling);
+        testDataFilling = new TestDataFilling(databaseHandling).fill();
     }
 
     @ParameterizedTest
@@ -220,7 +219,7 @@ class TestDatabaseHandling {
         Group group = groupList.get(ThreadLocalRandom.current().nextInt(1, groupList.size()));
         List<Person> personInGroupList = group.getPersonInGroupList();
         personInGroupList.sort(Comparator.comparing(Unit::getId));
-        List<Person> personInGroupListFromDB = databaseHandling.getPersonInGroupList(group.getId());
+        List<Person> personInGroupListFromDB = databaseHandling.getPersonInGroupList(group.getId(),databaseHandling.createConnection());
         personInGroupList.sort(Comparator.comparing(Unit::getId));
         Assertions.assertArrayEquals(personInGroupList.toArray(), personInGroupListFromDB.toArray());
     }

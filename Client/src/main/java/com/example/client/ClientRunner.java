@@ -5,5 +5,4 @@ public class ClientRunner {
     public static void main(String[] args) {
         UIClient.go(args);
     }
-
 }

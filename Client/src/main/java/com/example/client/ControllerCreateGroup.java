@@ -102,7 +102,7 @@ public class ControllerCreateGroup extends Controller {
             Person person = nameAndPersonMap.get(itemName);
             personInGroupList.add(person);
         });
-        personInGroupList.add(myPerson);
+        personInGroupList.add(chatClient.getMyPerson());
         chatClient.sendMessage(
                 new MessageBox.Builder().
                 buildCommandRequestRegGroup(
@@ -110,7 +110,7 @@ public class ControllerCreateGroup extends Controller {
                                 UUID.randomUUID().toString(),
                                 nameField.getText(),
                                 personInGroupList,
-                                myPerson
+                                chatClient.getMyPerson()
                         )
                 )
         );

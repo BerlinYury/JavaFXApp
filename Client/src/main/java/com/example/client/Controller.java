@@ -4,6 +4,8 @@ import com.example.api.Person;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,7 +24,6 @@ public abstract class Controller {
     protected static ControllerRegistrationPerson controllerRegistrationPerson;
     protected static ControllerCreateGroup controllerCreateGroup;
     protected static ControllerCreateChat controllerCreateChat;
-    protected static Person myPerson;
 
     public static void setCreateChat(ControllerCreateChat controllerCreateChat, Stage createChatStage) {
         Controller.controllerCreateChat = controllerCreateChat;
@@ -56,28 +57,6 @@ public abstract class Controller {
     }
 
     public abstract void clearFields();
-
-    public void closeAllWindows() {
-        Platform.runLater(() -> {
-            if (Objects.nonNull(controllerClient)) {
-                controllerClient.exit();
-            }
-            if (Objects.nonNull(authenticateStage)) {
-                authenticateStage.close();
-            }
-            if (Objects.nonNull(createChatStage)) {
-                createChatStage.close();
-            }
-            if (Objects.nonNull(createGroupStage)) {
-                createGroupStage.close();
-            }
-            if (Objects.nonNull(startStage)) {
-                startStage.close();
-            }
-            ThreadManagerClient.getInstance().shutdownMyExecutorService();
-            ThreadManagerClient.getInstance().shutdownMyScheduledExecutorService();
-        });
-    }
 
     public void showInformationMessage(String title, String text) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
