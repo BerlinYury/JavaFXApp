@@ -1,8 +1,44 @@
-2024-12-13 00:19:02,895 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение установлено
-2024-12-13 00:20:34,412 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: 1000 - Сервер завершает работу
-2024-12-13 00:21:24,922 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение установлено
-2024-12-13 00:23:30,437 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение установлено
-2024-12-13 00:24:10,982 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: 1000 - 
-2024-12-13 00:24:11,110 INFO com.example.client.ChatClient [WebSocketConnectReadThread-49] Соединение установлено
-2024-12-13 00:24:12,881 INFO com.example.client.ChatClient [WebSocketConnectReadThread-49] Соединение закрыто: 1000 - 
-2024-12-13 00:24:14,113 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: 1000 - 
+2024-12-28 15:03:22,513 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение установлено
+2024-12-28 15:03:55,718 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: 1000 - 
+2024-12-28 15:03:55,916 INFO com.example.client.ChatClient [WebSocketConnectReadThread-51] Соединение установлено
+2024-12-28 15:03:59,136 INFO com.example.client.ChatClient [WebSocketConnectReadThread-51] Соединение закрыто: 1000 - 
+2024-12-28 17:38:48,758 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение установлено
+2024-12-28 17:39:23,195 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: 1000 - 
+2024-12-28 17:47:13,102 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение установлено
+2024-12-28 17:47:51,707 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: 1000 - 
+2024-12-28 17:50:02,748 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение установлено
+2024-12-28 17:51:51,149 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: 1000 - 
+2024-12-28 19:47:28,460 ERROR com.example.client.ChatClient [WebSocketConnectReadThread-41] Ошибка соединения
+java.net.ConnectException: Connection refused: connect
+	at java.base/sun.nio.ch.Net.connect0(Native Method)
+	at java.base/sun.nio.ch.Net.connect(Net.java:579)
+	at java.base/sun.nio.ch.Net.connect(Net.java:568)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:576)
+	at java.base/java.net.Socket.connect(Socket.java:666)
+	at org.java_websocket.client.WebSocketClient.run(WebSocketClient.java:473)
+	at java.base/java.lang.Thread.run(Thread.java:1589)
+2024-12-28 19:47:28,463 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: -1 - Connection refused: connect
+2024-12-28 19:47:56,616 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение установлено
+2024-12-28 19:48:13,087 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: 1000 - 
+2024-12-28 19:48:13,194 INFO com.example.client.ChatClient [WebSocketConnectReadThread-49] Соединение установлено
+2024-12-28 19:48:27,054 INFO com.example.client.ChatClient [WebSocketConnectReadThread-49] Соединение закрыто: 1000 - 
+2024-12-28 21:34:53,550 ERROR com.example.client.ChatClient [WebSocketConnectReadThread-41] Ошибка соединения
+java.net.ConnectException: Connection refused: connect
+	at java.base/sun.nio.ch.Net.connect0(Native Method)
+	at java.base/sun.nio.ch.Net.connect(Net.java:579)
+	at java.base/sun.nio.ch.Net.connect(Net.java:568)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:576)
+	at java.base/java.net.Socket.connect(Socket.java:666)
+	at org.java_websocket.client.WebSocketClient.run(WebSocketClient.java:473)
+	at java.base/java.lang.Thread.run(Thread.java:1589)
+2024-12-28 21:34:53,555 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: -1 - Connection refused: connect
+2024-12-28 22:25:02,223 ERROR com.example.client.ChatClient [WebSocketConnectReadThread-41] Ошибка соединения
+java.net.ConnectException: Connection refused: connect
+	at java.base/sun.nio.ch.Net.connect0(Native Method)
+	at java.base/sun.nio.ch.Net.connect(Net.java:579)
+	at java.base/sun.nio.ch.Net.connect(Net.java:568)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:576)
+	at java.base/java.net.Socket.connect(Socket.java:666)
+	at org.java_websocket.client.WebSocketClient.run(WebSocketClient.java:473)
+	at java.base/java.lang.Thread.run(Thread.java:1589)
+2024-12-28 22:25:02,226 INFO com.example.client.ChatClient [WebSocketConnectReadThread-41] Соединение закрыто: -1 - Connection refused: connect

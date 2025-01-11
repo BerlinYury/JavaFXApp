@@ -1,6 +1,7 @@
 package com.example.client;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -9,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
 
@@ -56,20 +58,25 @@ public class UIClient extends Application {
 
         startStage.setOnCloseRequest(event -> {
             controllerAuthenticate.offTimer();
-            controllerClient.closeAllWindows();
+            chatClient.stopClient();
+            chatClient.closeAllResources();
+            Platform.exit();
         });
         authenticateStage.setOnCloseRequest(event -> {
             controllerAuthenticate.offTimer();
-            controllerAuthenticate.closeAllWindows();
+            chatClient.stopClient();
+            chatClient.closeAllResources();
+            Platform.exit();
         });
         registrationStage.setOnCloseRequest(event -> {
             controllerAuthenticate.restartTimer();
             authenticateStage.show();
         });
+
+        chatClient = new ChatClient(controllerClient, controllerAuthenticate, controllerRegistrationPerson);
         try {
-            chatClient = new ChatClient(controllerClient, controllerAuthenticate, controllerRegistrationPerson);
-            chatClient.connect(); // Устанавливаем соединение
-        } catch (URISyntaxException e) {
+            chatClient.connect("ws://localhost:8080/server/chat");
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         Controller.setUiClient(this, chatClient, startStage,
@@ -97,7 +104,8 @@ public class UIClient extends Application {
         chatClient.setControllerCreateChat(controllerCreateChat);
         createChatStage.show();
     }
-    public void startCreateGroupStage(){
+
+    public void startCreateGroupStage() {
         FXMLLoader fourthFxmlLoader = new FXMLLoader(UIClient.class.getResource("create-group-view.fxml"));
         Parent fourthRoot;
         try {
@@ -113,7 +121,7 @@ public class UIClient extends Application {
         createGroupStage.setTitle("Create new Group");
         createGroupStage.setScene(fourthScene);
 
-        Controller.setControllerCreateGroup(controllerCreateGroup,createGroupStage);
+        Controller.setControllerCreateGroup(controllerCreateGroup, createGroupStage);
         chatClient.setControllerCreateGroup(controllerCreateGroup);
         createGroupStage.show();
     }

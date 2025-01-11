@@ -43,7 +43,9 @@ public class ControllerAuthenticate extends Controller {
     }
 
     public void showAuthenticateStage() {
+        Platform.runLater(() -> {
         authenticateStage.show();
+        });
     }
 
     public void onAcceptAuthenticatePerson() {
@@ -68,8 +70,9 @@ public class ControllerAuthenticate extends Controller {
         try {
             scheduledFuture = ThreadManagerClient.getInstance().getScheduledExecutorService().schedule(() -> {
                 if (!isAuth) {
-                    showTimeOffWindowMessage();
-                    closeAllWindows();
+                    chatClient.stopClient();
+                    chatClient.closeAllResources();
+                    Platform.runLater(Platform::exit);
                 }
             }, 120, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -83,15 +86,6 @@ public class ControllerAuthenticate extends Controller {
 
     public void offTimer() {
         scheduledFuture.cancel(false);
-    }
-
-    private void showTimeOffWindowMessage() {
-        Platform.runLater(() -> {
-            String title = ("Time limit");
-            String text = ("Время ожидания вышло");
-            showInformationMessage(title, text);
-            clearFields();
-        });
     }
 
     @Override

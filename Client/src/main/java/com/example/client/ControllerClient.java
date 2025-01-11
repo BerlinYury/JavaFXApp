@@ -100,7 +100,7 @@ public class ControllerClient extends Controller {
                 messageBox = new MessageBox.Builder().buildMessageOutingPerson(
                         UUID.randomUUID().toString(),
                         LocalDateTime.now(),
-                        myPerson,
+                        chatClient.getMyPerson(),
                         person,
                         textOnTextField,
                         false);
@@ -110,9 +110,9 @@ public class ControllerClient extends Controller {
                 messageBox = new MessageBox.Builder().buildMessageOutingGroup(
                         UUID.randomUUID().toString(),
                         LocalDateTime.now(),
-                        myPerson,
+                        chatClient.getMyPerson(),
                         group,
-                        myPerson,
+                        chatClient.getMyPerson(),
                         textOnTextField,
                         false
                 );
@@ -261,7 +261,7 @@ public class ControllerClient extends Controller {
                 HashMap<MenuItem, Person> menuItemPersonMap = new HashMap<>();
 
                 selectedGroup.getPersonInGroupList().forEach(person -> {
-                    if (!person.equals(myPerson)) {
+                    if (!person.equals(chatClient.getMyPerson())) {
                         MenuItem item = new MenuItem(person.getName());
                         menuItemPersonMap.put(item, person);
 
@@ -272,7 +272,8 @@ public class ControllerClient extends Controller {
                                 correspondenceMap.get(selectedPersonId).getCustomButton().getButton().fire();
                             } else {
                                 questionOfCreatingNewChat(
-                                        new Correspondence(selectedPersonId, selectedPerson, CorrespondenceType.PERSON,new ArrayList<>())
+                                        new Correspondence(selectedPersonId, selectedPerson,
+                                                CorrespondenceType.PERSON, new ArrayList<>())
                                 );
                             }
                         });
@@ -342,7 +343,8 @@ public class ControllerClient extends Controller {
     @FXML
     public void logout() {
         try {
-            exit();
+            chatClient.stopClient();
+            chatClient.closeAllResources();
             startStage.close();
             uiClient.start(startStage);
         } catch (Exception e) {
@@ -350,12 +352,8 @@ public class ControllerClient extends Controller {
         }
     }
 
-    public void exit() {
-        chatClient.sendMessage(new MessageBox.Builder().buildCommandEnd(myPerson));
-    }
-
     public void showStartStage() {
-        startStage.setTitle(String.format("Мой Nick: %s", myPerson.getName()));
+        startStage.setTitle(String.format("Мой Nick: %s", chatClient.getMyPerson().getName()));
         startStage.show();
     }
 

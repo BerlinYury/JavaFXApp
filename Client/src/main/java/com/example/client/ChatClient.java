@@ -1,19 +1,20 @@
 package com.example.client;
 
 import com.example.api.*;
+import jakarta.websocket.*;
+import javafx.application.Platform;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
 
+import java.net.ConnectException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 @Slf4j
-public class ChatClient extends WebSocketClient {
+@ClientEndpoint
+public class ChatClient  {
     private final ControllerClient controllerClient;
     private final ControllerAuthenticate controllerAuthenticate;
     private final ControllerRegistrationPerson controllerRegistrationPerson;
@@ -21,18 +22,23 @@ public class ChatClient extends WebSocketClient {
     private final ConcurrentHashMap<String, Correspondence> correspondenceMap;
     private ControllerCreateChat controllerCreateChat;
     private ControllerCreateGroup controllerCreateGroup;
+    @Getter
+    private Person myPerson;
+    private Session session;
 
     public ChatClient(ControllerClient controllerClient,
                       ControllerAuthenticate controllerAuthenticate,
-                      ControllerRegistrationPerson controllerRegistrationPerson
-    ) throws URISyntaxException {
-        super(new URI("ws://localhost:8129")); // URI WebSocket-сервера
+                      ControllerRegistrationPerson controllerRegistrationPerson) {
         this.controllerClient = controllerClient;
         this.controllerAuthenticate = controllerAuthenticate;
         this.controllerRegistrationPerson = controllerRegistrationPerson;
         this.correspondenceMap = new ConcurrentHashMap<>();
     }
 
+    public void connect(String serverUri) throws Exception {
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+        this.session = container.connectToServer(this, new URI(serverUri));
+    }
     public void setControllerCreateChat(ControllerCreateChat controllerCreateChat) {
         this.controllerCreateChat = controllerCreateChat;
     }
@@ -41,7 +47,7 @@ public class ChatClient extends WebSocketClient {
         this.controllerCreateGroup = controllerCreateGroup;
     }
 
-    @Override
+    @OnMessage
     public void onMessage(String message) {
         try {
             MessageBox messageBox = MessageBox.fromJson(message);
@@ -72,6 +78,11 @@ public class ChatClient extends WebSocketClient {
             case ACCEPT -> workWithAccept(messageBox);
             case FAILED -> workWithFailed(messageBox);
             case CHANGE -> workWithChange(messageBox);
+            case END -> {
+                stopClient();
+                closeAllResources();
+                Platform.exit();
+            }
             default -> showIllegalStateException(messageBox);
         }
     }
@@ -87,7 +98,7 @@ public class ChatClient extends WebSocketClient {
             case AUTH -> {
                 switch (messageBox.getMessageTypeFourLevel()) {
                     case PERSON -> {
-                        Controller.myPerson = messageBox.getOwner();
+                        this.myPerson= messageBox.getOwner();
                         controllerAuthenticate.onAcceptAuthenticatePerson();
                     }
                     default -> showIllegalStateException(messageBox);
@@ -139,9 +150,6 @@ public class ChatClient extends WebSocketClient {
         }
     }
 
-    public void sendMessage(MessageBox messageBox) {
-            send(messageBox.toJson());
-    }
 
     public Correspondence addMessageToMap(MessageBox messageBox) {
         Correspondence correspondence;
@@ -185,19 +193,46 @@ public class ChatClient extends WebSocketClient {
         ));
     }
 
-    @Override
-    public void onOpen(ServerHandshake serverHandshake) {
+    @OnOpen
+    public void onOpen(Session session) {
+        this.session = session;
         System.out.println("Соединение установлено");
-        log.info("Соединение установлено");
     }
 
-    @Override
-    public void onClose(int code, String reason, boolean remote) {
-        log.info("Соединение закрыто: {} - {}", code, reason);
+    public void stopClient() {
+        try {
+            sendMessage(new MessageBox.Builder().buildCommandEnd());
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
+        } catch (Exception e) {
+            log.error("Ошибка при закрытии клиента", e);
+        }
     }
 
-    @Override
-    public void onError(Exception ex) {
-        log.error("Ошибка соединения", ex);
+    public void closeAllResources(){
+        ThreadManagerClient.getInstance().shutdownMyExecutorService();
+        ThreadManagerClient.getInstance().shutdownMyScheduledExecutorService();
+    }
+
+    @OnClose
+    public void onClose(Session session, CloseReason closeReason) {
+        System.out.println("Соединение закрыто: " + closeReason);
+    }
+
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+        if (throwable instanceof ConnectException) {
+            System.out.println("Сервер не запущен.");
+            Platform.exit(); // Завершение приложения JavaFX
+        } else {
+            throwable.printStackTrace();
+        }
+        log.error("Ошибка соединения", throwable);
+    }
+    public void sendMessage(MessageBox messageBox) {
+        if (session != null && session.isOpen()) {
+            session.getAsyncRemote().sendText(messageBox.toJson());
+        }
     }
 }

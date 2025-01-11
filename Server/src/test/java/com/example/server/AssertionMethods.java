@@ -17,17 +17,15 @@ import java.util.Collections;
 import java.util.List;
 
 public class AssertionMethods {
-    private final Connection connection;
     private final DatabaseHandling databaseHandling;
 
-    public AssertionMethods(Connection connection, DatabaseHandling databaseHandling) {
+    public AssertionMethods(DatabaseHandling databaseHandling) {
         this.databaseHandling = databaseHandling;
-        this.connection = connection;
     }
 
     public Object[] selectPerson(Person person, String email, String password) {
         List<Object> personArgumentList = new ArrayList<>();
-        try {
+        try (Connection connection= databaseHandling.createConnection()){
             databaseHandling.registrationPerson(person, email, password);
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement
@@ -47,7 +45,7 @@ public class AssertionMethods {
     public Object[] selectGroup(Group group) {
         List<Object> groupArgumentList = new ArrayList<>();
         List<String> pesonInGroupList = new ArrayList<>();
-        try {
+        try (Connection connection= databaseHandling.createConnection()){
             databaseHandling.registrationGroup(group);
             Statement st1 = connection.createStatement();
             Statement st2 = connection.createStatement();
@@ -76,7 +74,7 @@ public class AssertionMethods {
 
     public MessageBox selectMessageBox(MessageBox messageBox) {
         MessageBox messageBoxResult = null;
-        try {
+        try (Connection connection= databaseHandling.createConnection()){
             databaseHandling.addMessageToDB(messageBox);
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(
@@ -123,7 +121,7 @@ public class AssertionMethods {
                 String adminId = resultSet.getString(12);
                 String adminName = resultSet.getString(13);
                 String message = resultSet.getString(14);
-                List<Person> personInGroupList = databaseHandling.getPersonInGroupList(groupId);
+                List<Person> personInGroupList = databaseHandling.getPersonInGroupList(groupId,databaseHandling.createConnection());
                 switch (messageType) {
                     case PERSON -> messageBoxResult = new MessageBox.Builder().buildMessageOutingPerson(
                             messageId,
@@ -152,7 +150,7 @@ public class AssertionMethods {
     }
 
     public void cleanAllTables() {
-        try {
+        try(Connection connection= databaseHandling.createConnection()) {
             Statement statement = connection.createStatement();
             statement.executeUpdate("delete from person");
         } catch (SQLException e) {

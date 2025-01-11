@@ -43,7 +43,7 @@ public class ControllerCreateChat extends Controller {
 
     public void addAllPersonList(List<Person> allPersonList) {
         allPersonList.forEach(person -> {
-            if (!correspondenceMap.containsKey(person.getId()) && !person.equals(myPerson)) {
+            if (!correspondenceMap.containsKey(person.getId()) && !person.equals(chatClient.getMyPerson())) {
                 nameAndPersonMap.put(person.getName(), person);
             }
         });

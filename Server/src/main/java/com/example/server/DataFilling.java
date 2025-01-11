@@ -17,7 +17,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Getter
 public class DataFilling {
-    private final Connection connection;
     private final DatabaseHandling databaseHandling;
 
     private ArrayList<MessageBox> messageBoxRegPersonList;
@@ -33,8 +32,7 @@ public class DataFilling {
     private final int maxCountMessage = 1000;
 
     public DataFilling() {
-        this.databaseHandling = new DatabaseHandling();
-        this.connection = databaseHandling.getConnection();
+        this.databaseHandling = new DatabaseHandling("jdbc:mysql://localhost:3306/chat", "root","Cotton68");
     }
 
     public static void main(String[] args) {
@@ -132,7 +130,7 @@ public class DataFilling {
     }
 
     public void cleanAllTables() {
-        try {
+        try (Connection connection = databaseHandling.createConnection()){
             Statement statement = connection.createStatement();
             statement.executeUpdate("delete from person");
         } catch (SQLException e) {

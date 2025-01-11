@@ -2,8 +2,10 @@ package com.example.server;
 
 import com.example.api.*;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.Getter;
+import jakarta.inject.Inject;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -15,22 +17,51 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Slf4j
 @ApplicationScoped
+@NoArgsConstructor
 public class DatabaseHandling {
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    @Getter
-    private final Connection connection;
 
-    public DatabaseHandling() {
-        this.connection = createConnection();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private String databaseUrl;
+    private String databaseUser;
+    private String databasePassword;
+
+    // Инжект значений через конструктор
+    @Inject
+    public DatabaseHandling(
+            @ConfigProperty(name = "database.url") String databaseUrl,
+            @ConfigProperty(name = "database.user") String databaseUser,
+            @ConfigProperty(name = "database.password") String databasePassword) {
+        this.databaseUrl = databaseUrl;
+        this.databaseUser = databaseUser;
+        this.databasePassword = databasePassword;
     }
 
-    private static Connection createConnection() {
+    public Connection createConnection() {
         try {
-            return DriverManager.getConnection("jdbc:mysql://localhost:3306/chat?user=root&password=Cotton68");
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+
+
+//            log.info(String.format("Подключение к базе данных: %s%s%s", databaseUrl, databaseUser, databasePassword));
+            StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+            StringBuilder stackTraceString = new StringBuilder("Соединение создано. Стек вызовов:\n");
+            for (StackTraceElement element : stackTrace) {
+                stackTraceString.append(element.toString()).append("\n");
+            }
+            log.info(stackTraceString.toString());
+
+
+            Connection con = DriverManager.getConnection(databaseUrl, databaseUser, databasePassword);
+            return con;
         } catch (SQLException e) {
+            log.error("Ошибка подключения к базе данных", e);
             throw new RuntimeException(e);
         }
     }
+
 
     public void registrationPerson(Person person, String email, String password) {
         lock.writeLock().lock();
@@ -95,22 +126,25 @@ public class DatabaseHandling {
         List<Person> personInGroupList = group.getPersonInGroupList();
         String groupId = group.getId();
 
-        PreparedStatement preparedStatement = connection.prepareStatement("""
-                                                                          insert into person_in_group_of_person 
-                                                                          (person_id, group_of_person_id) values (?,?);
-                                                                          """);
-        preparedStatement.setString(2, groupId);
-        for (Person person : personInGroupList) {
-            preparedStatement.setString(1, person.getId());
-            preparedStatement.addBatch();
+        try (PreparedStatement preparedStatement = connection.prepareStatement("""
+                                                                               INSERT INTO person_in_group_of_person 
+                                                                               (person_id, group_of_person_id) VALUES (?, ?);
+                                                                               """)) {
+            preparedStatement.setString(2, groupId);
+            for (Person person : personInGroupList) {
+                preparedStatement.setString(1, person.getId());
+                preparedStatement.addBatch();
+            }
+            preparedStatement.executeBatch();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        preparedStatement.executeBatch();
     }
 
     public DBResponse isPersonExistsInDatabase(Person person, String email) {
         lock.writeLock().lock();
         ArrayList<MessageTypeThirdLevel> errorOnFieldList = new ArrayList<>();
-        try {
+        try (Connection connection = createConnection()) {
             ResultSet resultSetEmail = connection.createStatement().executeQuery(
                     String.format("SELECT EXISTS (select * from person where email = '%s')", email)
             );
@@ -167,24 +201,24 @@ public class DatabaseHandling {
 
     public List<Group> getGroupListWhereIAmAMember(Person person) {
         List<Group> groupWhereIAmAMember = new ArrayList<>();
-        try {
-            Statement selectStatement = connection.createStatement();
-            String sql = """
-                         select group_of_person.id,
-                                group_of_person.name,
-                                group_of_person.admin_id,
-                                person.name
-                         from person_in_group_of_person
-                                  inner join group_of_person
-                                             on person_in_group_of_person.group_of_person_id = group_of_person.id
-                         inner join person on admin_id =person.id
-                         where person_id = '%s'
-                         """;
-            ResultSet resultSet = selectStatement.executeQuery(String.format(sql, person.getId()));
+        String sql = """
+                     select group_of_person.id,
+                            group_of_person.name,
+                            group_of_person.admin_id,
+                            person.name
+                     from person_in_group_of_person
+                              inner join group_of_person
+                                         on person_in_group_of_person.group_of_person_id = group_of_person.id
+                     inner join person on admin_id =person.id
+                     where person_id = '%s'
+                     """;
+        try (Connection connection = createConnection();
+             Statement selectStatement = connection.createStatement();
+             ResultSet resultSet = selectStatement.executeQuery(String.format(sql, person.getId()));) {
             while (resultSet.next()) {
                 String groupId = resultSet.getString(1);
                 String groupName = resultSet.getString(2);
-                List<Person> personInGroupList = getPersonInGroupList(groupId);
+                List<Person> personInGroupList = getPersonInGroupList(groupId,connection);
                 String adminId = resultSet.getString(3);
                 String adminName = resultSet.getString(4);
                 Person admin = new Person(adminId, adminName);
@@ -199,7 +233,7 @@ public class DatabaseHandling {
 
     public Person authenticatePerson(String email, String password) {
         lock.readLock().lock();
-        try {
+        try (Connection connection = createConnection()) {
             Statement selectStatement = connection.createStatement();
             String sql = """
                          select id, name from person where email = '%s' AND password = '%s'
@@ -223,16 +257,18 @@ public class DatabaseHandling {
         ConcurrentHashMap<String, Unit> idAndUnitMap = new ConcurrentHashMap<>();
         List<MessageBox> messageBoxList = new ArrayList<>();
 
-        try {
+        try (Connection connection = createConnection();
+             Statement selectStatement = connection.createStatement()) {
+
             List<Group> groupWhereIAmAMember = getGroupListWhereIAmAMember(ownerOfHistory);
             StringBuilder groupIdBuilder = new StringBuilder();
+
             if (groupWhereIAmAMember.isEmpty()) {
                 groupIdBuilder.append("''");
             } else {
                 groupWhereIAmAMember.forEach(group -> groupIdBuilder.append(String.format("'%s',", group.getId())));
                 groupIdBuilder.deleteCharAt(groupIdBuilder.length() - 1);
             }
-            Statement selectStatement = connection.createStatement();
             String sql = """
                          SELECT message.id,
                                 type_table.name,
@@ -263,159 +299,162 @@ public class DatabaseHandling {
                          """;
             String formatted = String.format(sql, ownerOfHistory.getId(), ownerOfHistory.getId(), groupIdBuilder);
 
-            ResultSet resultSet = selectStatement.executeQuery(formatted);
-            while (resultSet.next()) {
-                String messageId = resultSet.getString(1);
-                MessageTypeFourLevel messageType = MessageTypeFourLevel.valueOf(resultSet.getString(2));
-                LocalDateTime dateTime = LocalDateTime.parse(resultSet.getString(3), DateTimeFormatter.ofPattern(
-                        "yyyy-MM-dd HH:mm:ss"));
-                String ownerId = resultSet.getString(4);
-                String ownerName = resultSet.getString(5);
-                String personId = resultSet.getString(6);
-                String personName = resultSet.getString(7);
-                String groupId = resultSet.getString(8);
-                String groupName = resultSet.getString(9);
-                String senderId = resultSet.getString(10);
-                String senderName = resultSet.getString(11);
-                String adminId = resultSet.getString(12);
-                String adminName = resultSet.getString(13);
-                String message = resultSet.getString(14);
+            try (ResultSet resultSet = selectStatement.executeQuery(formatted)) {
+                while (resultSet.next()) {
+                    String messageId = resultSet.getString(1);
+                    MessageTypeFourLevel messageType = MessageTypeFourLevel.valueOf(resultSet.getString(2));
+                    LocalDateTime dateTime = LocalDateTime.parse(resultSet.getString(3), DateTimeFormatter.ofPattern(
+                            "yyyy-MM-dd HH:mm:ss"));
+                    String ownerId = resultSet.getString(4);
+                    String ownerName = resultSet.getString(5);
+                    String personId = resultSet.getString(6);
+                    String personName = resultSet.getString(7);
+                    String groupId = resultSet.getString(8);
+                    String groupName = resultSet.getString(9);
+                    String senderId = resultSet.getString(10);
+                    String senderName = resultSet.getString(11);
+                    String adminId = resultSet.getString(12);
+                    String adminName = resultSet.getString(13);
+                    String message = resultSet.getString(14);
 
-                if (ownerId.equals(ownerOfHistory.getId())) {
-                    switch (messageType) {
-                        case PERSON -> {
-                            Person owner;
-                            if (idAndUnitMap.containsKey(ownerId)) {
-                                owner = (Person) idAndUnitMap.get(ownerId);
-                            } else {
-                                owner = new Person(ownerId, ownerName);
-                                idAndUnitMap.put(ownerId, owner);
+                    if (ownerId.equals(ownerOfHistory.getId())) {
+                        switch (messageType) {
+                            case PERSON -> {
+                                Person owner;
+                                if (idAndUnitMap.containsKey(ownerId)) {
+                                    owner = (Person) idAndUnitMap.get(ownerId);
+                                } else {
+                                    owner = new Person(ownerId, ownerName);
+                                    idAndUnitMap.put(ownerId, owner);
+                                }
+
+                                Person person;
+                                if (idAndUnitMap.containsKey(personId)) {
+                                    person = (Person) idAndUnitMap.get(personId);
+                                } else {
+                                    person = new Person(personId, personName);
+                                    idAndUnitMap.put(personId, person);
+                                }
+
+                                messageBoxList.add(new MessageBox.Builder()
+                                        .buildMessageOutingPerson(messageId, dateTime, owner, person, message, true)
+                                );
                             }
+                            case GROUP -> {
+                                Person owner;
+                                if (idAndUnitMap.containsKey(ownerId)) {
+                                    owner = (Person) idAndUnitMap.get(ownerId);
+                                } else {
+                                    owner = new Person(ownerId, ownerName);
+                                    idAndUnitMap.put(ownerId, owner);
+                                }
 
-                            Person person;
-                            if (idAndUnitMap.containsKey(personId)) {
-                                person = (Person) idAndUnitMap.get(personId);
-                            } else {
-                                person = new Person(personId, personName);
-                                idAndUnitMap.put(personId, person);
+                                Person admin;
+                                if (idAndUnitMap.containsKey(adminId)) {
+                                    admin = (Person) idAndUnitMap.get(adminId);
+                                } else {
+                                    admin = new Person(adminId, adminName);
+                                    idAndUnitMap.put(adminId, admin);
+                                }
+
+                                Group group;
+                                if (idAndUnitMap.containsKey(groupId)) {
+                                    group = (Group) idAndUnitMap.get(groupId);
+                                } else {
+                                    group = new Group(groupId, groupName,
+                                            getPersonInGroupList(groupId,connection),
+                                            admin);
+                                }
+
+                                Person sender;
+                                if (idAndUnitMap.containsKey(senderId)) {
+                                    sender = (Person) idAndUnitMap.get(senderId);
+                                } else {
+                                    sender = new Person(senderId, senderName);
+                                    idAndUnitMap.put(senderId, sender);
+                                }
+
+                                messageBoxList.add(new MessageBox.Builder()
+                                        .buildMessageOutingGroup(
+                                                messageId, dateTime, owner,
+                                                group, sender, message, true)
+                                );
                             }
-
-                            messageBoxList.add(new MessageBox.Builder()
-                                    .buildMessageOutingPerson(messageId, dateTime, owner, person, message,true)
-                            );
                         }
-                        case GROUP -> {
-                            Person owner;
-                            if (idAndUnitMap.containsKey(ownerId)) {
-                                owner = (Person) idAndUnitMap.get(ownerId);
-                            } else {
-                                owner = new Person(ownerId, ownerName);
-                                idAndUnitMap.put(ownerId, owner);
+                    } else {
+                        switch (messageType) {
+                            case PERSON -> {
+                                Person owner;
+                                if (idAndUnitMap.containsKey(ownerId)) {
+                                    owner = (Person) idAndUnitMap.get(ownerId);
+                                } else {
+                                    owner = new Person(ownerId, ownerName);
+                                    idAndUnitMap.put(ownerId, owner);
+                                }
+
+                                Person person;
+                                if (idAndUnitMap.containsKey(personId)) {
+                                    person = (Person) idAndUnitMap.get(personId);
+                                } else {
+                                    person = new Person(personId, personName);
+                                    idAndUnitMap.put(personId, person);
+                                }
+
+
+                                Person newOwner = person;
+                                Person newPerson = owner;
+
+                                messageBoxList.add(new MessageBox.Builder()
+                                        .buildMessageIncomingPerson(
+                                                UUID.randomUUID().toString(), dateTime, newOwner,
+                                                newPerson, message, true)
+                                );
                             }
+                            case GROUP -> {
+                                Person owner;
+                                if (idAndUnitMap.containsKey(ownerId)) {
+                                    owner = (Person) idAndUnitMap.get(ownerId);
+                                } else {
+                                    owner = new Person(ownerId, ownerName);
+                                    idAndUnitMap.put(ownerId, owner);
+                                }
 
-                            Person admin;
-                            if (idAndUnitMap.containsKey(adminId)) {
-                                admin = (Person) idAndUnitMap.get(adminId);
-                            } else {
-                                admin = new Person(adminId, adminName);
-                                idAndUnitMap.put(adminId, admin);
+                                Person admin;
+                                if (idAndUnitMap.containsKey(adminId)) {
+                                    admin = (Person) idAndUnitMap.get(adminId);
+                                } else {
+                                    admin = new Person(adminId, adminName);
+                                    idAndUnitMap.put(adminId, admin);
+                                }
+
+                                Group group;
+                                if (idAndUnitMap.containsKey(groupId)) {
+                                    group = (Group) idAndUnitMap.get(groupId);
+                                } else {
+                                    group = new Group(groupId, groupName,
+                                            getPersonInGroupList(groupId,connection),
+                                            admin);
+                                }
+
+                                Person sender;
+                                if (idAndUnitMap.containsKey(senderId)) {
+                                    sender = (Person) idAndUnitMap.get(senderId);
+                                } else {
+                                    sender = new Person(senderId, senderName);
+                                    idAndUnitMap.put(senderId, sender);
+                                }
+
+                                Person newOwner = ownerOfHistory;
+                                messageBoxList.add(new MessageBox.Builder()
+                                        .buildMessageIncomingGroup(
+                                                UUID.randomUUID().toString(), dateTime, newOwner,
+                                                group, sender, message, true));
                             }
-
-                            Group group;
-                            if (idAndUnitMap.containsKey(groupId)) {
-                                group = (Group) idAndUnitMap.get(groupId);
-                            } else {
-                                group = new Group(groupId, groupName,
-                                        getPersonInGroupList(groupId),
-                                        admin);
-                            }
-
-                            Person sender;
-                            if (idAndUnitMap.containsKey(senderId)) {
-                                sender = (Person) idAndUnitMap.get(senderId);
-                            } else {
-                                sender = new Person(senderId, senderName);
-                                idAndUnitMap.put(senderId, sender);
-                            }
-
-                            messageBoxList.add(new MessageBox.Builder()
-                                    .buildMessageOutingGroup(
-                                            messageId, dateTime, owner,
-                                            group, sender, message,true)
-                            );
-                        }
-                    }
-                } else {
-                    switch (messageType) {
-                        case PERSON -> {
-                            Person owner;
-                            if (idAndUnitMap.containsKey(ownerId)) {
-                                owner = (Person) idAndUnitMap.get(ownerId);
-                            } else {
-                                owner = new Person(ownerId, ownerName);
-                                idAndUnitMap.put(ownerId, owner);
-                            }
-
-                            Person person;
-                            if (idAndUnitMap.containsKey(personId)) {
-                                person = (Person) idAndUnitMap.get(personId);
-                            } else {
-                                person = new Person(personId, personName);
-                                idAndUnitMap.put(personId, person);
-                            }
-
-
-                            Person newOwner = person;
-                            Person newPerson = owner;
-
-                            messageBoxList.add(new MessageBox.Builder()
-                                    .buildMessageIncomingPerson(
-                                            UUID.randomUUID().toString(), dateTime, newOwner,
-                                            newPerson, message, true)
-                            );
-                        }
-                        case GROUP -> {
-                            Person owner;
-                            if (idAndUnitMap.containsKey(ownerId)) {
-                                owner = (Person) idAndUnitMap.get(ownerId);
-                            } else {
-                                owner = new Person(ownerId, ownerName);
-                                idAndUnitMap.put(ownerId, owner);
-                            }
-
-                            Person admin;
-                            if (idAndUnitMap.containsKey(adminId)) {
-                                admin = (Person) idAndUnitMap.get(adminId);
-                            } else {
-                                admin = new Person(adminId, adminName);
-                                idAndUnitMap.put(adminId, admin);
-                            }
-
-                            Group group;
-                            if (idAndUnitMap.containsKey(groupId)) {
-                                group = (Group) idAndUnitMap.get(groupId);
-                            } else {
-                                group = new Group(groupId, groupName,
-                                        getPersonInGroupList(groupId),
-                                        admin);
-                            }
-
-                            Person sender;
-                            if (idAndUnitMap.containsKey(senderId)) {
-                                sender = (Person) idAndUnitMap.get(senderId);
-                            } else {
-                                sender = new Person(senderId, senderName);
-                                idAndUnitMap.put(senderId, sender);
-                            }
-
-                            Person newOwner= ownerOfHistory;
-                            messageBoxList.add(new MessageBox.Builder()
-                                    .buildMessageIncomingGroup(
-                                            UUID.randomUUID().toString(), dateTime, newOwner,
-                                            group, sender, message,true));
                         }
                     }
                 }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -425,14 +464,15 @@ public class DatabaseHandling {
         return messageBoxList;
     }
 
-    public List<Person> getPersonInGroupList(String groupId) {
+    public List<Person> getPersonInGroupList(String groupId,Connection connection) {
         List<Person> personInGroupList = new ArrayList<>();
         String sql = """
                      select person_id, person.name from person_in_group_of_person
                      inner join person on person_in_group_of_person.person_id = person.id
                      where group_of_person_id = ?;
                      """;
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement =
+                connection.prepareStatement(sql)) {
             preparedStatement.setString(1, groupId);
             ResultSet rs = preparedStatement.executeQuery();
             while (rs.next()) {
@@ -448,7 +488,7 @@ public class DatabaseHandling {
 
     public void addMessageToDB(MessageBox messageBox) {
         lock.writeLock().lock();
-        try {
+        try (Connection connection = createConnection()) {
             Statement statement = connection.createStatement();
             String messageId = messageBox.getMessageId();
             int typeId = getTypeId(connection, messageBox.getMessageTypeFourLevel());
@@ -499,7 +539,7 @@ public class DatabaseHandling {
     public List<Person> getAllPersonList() {
         lock.readLock().lock();
         List<Person> allPersonList = new ArrayList<>();
-        try {
+        try (Connection connection = createConnection()) {
             Statement selectStatement = connection.createStatement();
             String sql = """
                          select id, name from person;
